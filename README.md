@@ -7,7 +7,7 @@ English | [简体中文](README-CN.md)
 ## Installation
 - [Go](./golang/README.md)
 - [.Net](./csharp/README.md)
-- [Java](./Java/README.md)
+- [Java](./java/README.md)
 
 
 ## Issues
