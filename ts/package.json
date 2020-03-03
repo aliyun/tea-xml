@@ -10,7 +10,7 @@
     "prepublishOnly": "tsc"
   },
   "author": "Jackson Tian",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "@alicloud/tea-typescript": "^1",
     "@types/xml2js": "^0.4.5",
