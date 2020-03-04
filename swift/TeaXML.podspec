@@ -4,7 +4,7 @@ Pod::Spec.new do |spec|
   spec.version      = "0.1.0"
   spec.license      = "Apache 2.0"
   spec.summary      = "Aliyun Tea XML Library for Swift"
-  spec.homepage     = "https://github.com/aliyun/tea-xml"
+  spec.homepage     = "https://github.com/alibabacloud-sdk-swift/tea-xml"
   spec.author       = { "Alibaba Cloud SDK" => "sdk-team@alibabacloud.com" }
 
   spec.source       = { :git => spec.homepage + '.git', :tag => spec.version }
@@ -17,7 +17,7 @@ Pod::Spec.new do |spec|
   spec.watchos.deployment_target = '2.0'
   spec.tvos.deployment_target    = '9.0'
 
-  spec.dependency 'https://github.com/chenyunguiMilook/SwiftyXML.git',  '3.0.2'
+  spec.dependency 'SwiftyXML',  '~> 3.0'
   spec.swift_version = '5.1'
 
 end

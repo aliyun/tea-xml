@@ -6,11 +6,40 @@
 
 ## 安装
 
-```bash
-cd swift/
-swift package generate-xcodeproj
+### CocoaPods
 
-add TeaXml.xcodeproj to your XCodeSpace project
+[CocoaPods](https://cocoapods.org) 是 Cocoa 项目管理工具。请访问其官方网站获取关于 CocoaPods 的使用和安装说明。要使用 CocoaPods 将 `TeaXml` 集成到你的 Xcode 项目中，需要在 `Podfile` 中定义以下内容:
+
+```ruby
+pod 'TeaXml', '~> 0.1.0'
+```
+
+### Carthage
+
+要使用 [Carthage](https://github.com/Carthage/Carthage) 将 Tea 集成到你的 Xcode 项目中，需要在 `Cartfile` 中定义以下内容:
+
+```ogdl
+github "alibabacloud-sdk-swift/tea-xml" "0.1.0"
+```
+
+### Swift 包管理工具
+
+要使用 [Swift Package Manager](https://swift.org/package-manager/) 将 Tea 集成到你的 Xcode 项目中，请将 Tea 添加至你的 `Package.swift` 文件的 dependencies 数组内容中:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/alibabacloud-sdk-swift/tea-xml.git", from: "0.1.0")
+]
+```
+
+另外，还需要在 `target` 的 `dependencies` 中添加 `"TeaXml"`，如下：
+
+```swift
+.target(
+    name: "<your-project-name>",
+    dependencies: [
+        "TeaXml",
+    ]),
 ```
 
 ## 问题
@@ -23,7 +52,7 @@ add TeaXml.xcodeproj to your XCodeSpace project
 
 ## 相关
 
-* [最新源码](https://github.com/aliyun/tea-xml/tree/master/swift)
+* [最新源码](https://github.com/aliyun/tea-xml)
 
 ## 许可证
 
