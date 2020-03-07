@@ -2,7 +2,7 @@
   "name": "alibabacloud/tea-xml",
   "description": "Aliyun Tea XML Library for PHP",
   "type": "library",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "authors": [
     {
       "name": "Alibaba Cloud SDK",
@@ -18,12 +18,12 @@
   },
   "autoload": {
     "psr-4": {
-      "AlibabaCloud\\Tea\\": "src"
+      "AlibabaCloud\\Tea\\XML\\": "src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "AlibabaCloud\\Tea\\Tests\\": "tests"
+      "AlibabaCloud\\Tea\\XML\\Tests\\": "tests"
     }
   },
   "scripts": {
