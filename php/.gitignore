@@ -7,7 +7,6 @@ composer.lock
 
 .idea
 .DS_Store
-tests/
 
 cache/
 *.cache
