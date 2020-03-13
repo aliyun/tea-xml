@@ -2,7 +2,7 @@
 
 ![](https://aliyunsdk-pages.alicdn.com/icons/AlibabaCloud.svg)
 
-## Aliyun Tea XML Library for Swift
+## Alibaba Cloud Tea XML Library for Swift
 
 ## 安装
 
