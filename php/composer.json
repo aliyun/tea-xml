@@ -1,6 +1,6 @@
 {
   "name": "alibabacloud/tea-xml",
-  "description": "Aliyun Tea XML Library for PHP",
+  "description": "Alibaba Cloud Tea XML Library for PHP",
   "type": "library",
   "license": "Apache-2.0",
   "authors": [
