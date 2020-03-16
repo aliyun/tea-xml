@@ -21,13 +21,18 @@ class XML
 
     public static function toXML($array)
     {
-        $tmp = $array;
-        reset($tmp);
-        $rootName   = key($tmp);
         $arrayToXml = new ArrayToXml();
-        $data       = $array[$rootName];
+        if (is_object($array)) {
+            $tmp      = explode("\\", get_class($array));
+            $rootName = $tmp[count($tmp) - 1];
+            $data     = json_decode(json_encode($array), true);
+        } else {
+            $tmp = $array;
+            reset($tmp);
+            $rootName = key($tmp);
+            $data     = $array[$rootName];
+        }
         ksort($data);
-
         return $arrayToXml->buildXML($data, $rootName);
     }
 

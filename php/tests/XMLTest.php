@@ -19,14 +19,14 @@ class RpcUtilsTest extends TestCase
 
     public function testParseXml()
     {
-        $res   = XML::parseXml($this->xmlStr, new TestObject());
+        $res   = XML::parseXml($this->xmlStr, new tests());
         $name  = $res['name'];
         $value = $res['value'];
         $this->assertEquals('test', $name);
         $this->assertEquals('1', $value);
     }
 
-    public function testToXML()
+    public function testArrayToXML()
     {
         $data = [
             'tests' => [
@@ -36,9 +36,17 @@ class RpcUtilsTest extends TestCase
         ];
         $this->assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tests><name>test</name><value>1</value></tests>", XML::toXML($data));
     }
+
+    public function testObjectToXML()
+    {
+        $obj        = new tests();
+        $obj->name  = 'test';
+        $obj->value = 1;
+        $this->assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tests><name>test</name><value>1</value></tests>", XML::toXML($obj));
+    }
 }
 
-class TestObject
+class tests
 {
     public $name  = '';
     public $value = 0;
