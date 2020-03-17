@@ -6,7 +6,8 @@
 	"releases": {
 		"go": "gitlab.alibaba-inc.com/alicloud-sdk/tea-xml/golang/service:v0.0.1",
 		"java": "com.aliyun:teaxml:0.0.1",
-		"ts": "@alicloud/tea-xml:0.0.1"
+		"ts": "@alicloud/tea-xml:0.0.1",
+		"php": "alibabacloud/tea-xml:^0.1.0"
 	},
 	"java": {
 		"package": "com.aliyun.teaxml"
@@ -14,5 +15,9 @@
 	"csharp": {
 		"namespace": "AlibabaCloud.TeaXML",
 		"className": "Client"
+	},
+	"php": {
+		"package": "AlibabaCloud.Tea.XML",
+		"clientName": "XML"
 	}
 }
