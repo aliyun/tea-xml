@@ -73,6 +73,19 @@ function run_ts {
   upload_codecov_report ts node_js
 }
 
+function run_python {
+  #env
+  export PYTHONPATH=$PYTHONPATH:`pwd`/python
+  echo $PYTHONPATH 
+  # install
+  cd python/tests || return 126
+  pip install coverage
+
+  coverage run --source="tea_xml.client" run_test.py
+  cd ../../
+  upload_codecov_report python python
+}
+
 function contains {
   local value=$2
   for i in $1
@@ -112,6 +125,10 @@ elif [ "$lang" == "go" ]
 then
   echo "run golang"
   run_go
+elif [ "$lang" == "python" ] 
+then
+  echo "run python"
+  run_python
 fi
 
 exit $?
