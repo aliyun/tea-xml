@@ -7,6 +7,9 @@ class XML
     public static function parseXml($xmlStr, $response)
     {
         $res    = self::parse($xmlStr);
+        if (\is_string($response)) {
+            $response = new $response();
+        }
         $prop   = get_object_vars($response);
         $target = [];
 
@@ -22,9 +25,9 @@ class XML
     public static function toXML($array)
     {
         $arrayToXml = new ArrayToXml();
-        if (is_object($array)) {
-            $tmp      = explode("\\", get_class($array));
-            $rootName = $tmp[count($tmp) - 1];
+        if (\is_object($array)) {
+            $tmp      = explode('\\', \get_class($array));
+            $rootName = $tmp[\count($tmp) - 1];
             $data     = json_decode(json_encode($array), true);
         } else {
             $tmp = $array;
@@ -33,6 +36,7 @@ class XML
             $data     = $array[$rootName];
         }
         ksort($data);
+
         return $arrayToXml->buildXML($data, $rootName);
     }
 
