@@ -78,7 +78,10 @@ function run_python {
   export PYTHONPATH=$PYTHONPATH:`pwd`/python
   echo $PYTHONPATH 
   # install
-  cd python/tests || return 126
+  cd python || return 126
+  python setup.py build
+  python setup.py install
+  cd tests || return 126
   pip install coverage
 
   coverage run --source="tea_xml.client" run_test.py
