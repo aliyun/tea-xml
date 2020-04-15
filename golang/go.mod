@@ -1,3 +1,3 @@
-module github.com/aliyun/tea-xml/golang
+module github.com/alibabacloud-go/tea-xml
 
-require github.com/alibabacloud-go/tea v0.0.5
+require github.com/alibabacloud-go/tea v0.0.12
