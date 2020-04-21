@@ -5,17 +5,19 @@ import (
 	"encoding/xml"
 	"fmt"
 	"reflect"
+
+	"github.com/alibabacloud-go/tea/tea"
 )
 
-func ToXML(obj map[string]interface{}) string {
-	return mapToXML(obj)
+func ToXML(obj map[string]interface{}) *string {
+	return tea.String(mapToXML(obj))
 }
 
-func ParseXml(val string, result interface{}) map[string]interface{} {
+func ParseXml(val *string, result interface{}) map[string]interface{} {
 	resp := make(map[string]interface{})
 
-	start := getStartElement([]byte(val))
-	out, err := xmlUnmarshal([]byte(val), result)
+	start := getStartElement([]byte(tea.StringValue(val)))
+	out, err := xmlUnmarshal([]byte(tea.StringValue(val)), result)
 	if err != nil {
 		return resp
 	}
