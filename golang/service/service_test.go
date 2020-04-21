@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/alibabacloud-go/tea/utils"
 )
 
@@ -26,12 +27,12 @@ type errLength struct {
 func Test_ParseXml(t *testing.T) {
 	str := `<?xml version="1.0" encoding="utf-8" standalone="no"?>
 	<num>10</num>`
-	result := ParseXml(str, new(validatorTest))
+	result := ParseXml(tea.String(str), new(validatorTest))
 	utils.AssertEqual(t, 1, len(result))
 
 	str = `<?xml version="1.0" encoding="utf-8" standalone="no"?>
 	<num/num>`
-	result = ParseXml(str, new(validatorTest))
+	result = ParseXml(tea.String(str), new(validatorTest))
 	utils.AssertEqual(t, 1, len(result))
 }
 
@@ -42,7 +43,7 @@ func Test_ToXML(t *testing.T) {
 		},
 	}
 	str := ToXML(val)
-	utils.AssertEqual(t, "<oss><key>value</key></oss>", str)
+	utils.AssertEqual(t, "<oss><key>value</key></oss>", tea.StringValue(str))
 }
 
 func Test_getStartElement(t *testing.T) {
