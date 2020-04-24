@@ -9,9 +9,8 @@ import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,12 +56,20 @@ public class XmlUtil {
         for (Field subField : subFields) {
             NameInMap nameAnnotation = subField.getAnnotation(NameInMap.class);
             String realName = nameAnnotation == null ? subField.getName() : nameAnnotation.value();
-            if (subField.getType().isArray()) {
+            if (List.class.isAssignableFrom(subField.getType())) {
                 List<Element> subElements = element.elements(realName);
-                Object[] target = (Object[]) Array.newInstance(subField.getType().getComponentType(), subElements.size());
+                ParameterizedType listGenericType = (ParameterizedType) subField.getGenericType();
+                Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
+                Type listActualTypeArgument = listActualTypeArguments[0];
+                Class<?> itemType = null;
+                if (listActualTypeArgument instanceof Class) {
+                    itemType = (Class<?>) listActualTypeArgument;
+                }
+
+                List target = new ArrayList();
                 for (int i = 0; i < subElements.size(); i++) {
-                    Array.set(target, i, TeaModel.toModel(getValueFromXml(subElements.get(i), subField.getType().getComponentType()),
-                            (TeaModel) subField.getType().getComponentType().newInstance()));
+                    target.add(TeaModel.toModel(getValueFromXml(subElements.get(i), itemType),
+                            (TeaModel) itemType.newInstance()));
                 }
                 nodeDict.put(realName, target);
             } else if (TeaModel.class.isAssignableFrom(subField.getType())) {
