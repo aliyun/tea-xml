@@ -2,9 +2,10 @@ import unittest
 
 import xml.etree.ElementTree as ET
 
-from tea_xml.client import Client
+from tea_xml import client
 from Tea.model import TeaModel
 from collections import defaultdict
+
 
 class TestClient(unittest.TestCase):
     class ListAllMyBucketsResult(TeaModel):
@@ -42,14 +43,45 @@ class TestClient(unittest.TestCase):
                 self._names["bucket"] = "Bucket"
 
     class ToBodyModel(TeaModel):
+        _base_type = {int, float, bool, complex, str}
+        _list_type = {list, tuple, set}
+        _dict_type = {dict}
+
         def __init__(self):
                 super().__init__()
                 self.listAllMyBucketsResult = None
                 self._names["listAllMyBucketsResult"] = "ListAllMyBucketsResult"
 
+        def _entity_to_dict(self, obj):
+            if type(obj) in self._dict_type:
+                obj_rtn = {k: self._entity_to_dict(v) for k, v in obj.items()}
+                return obj_rtn
+            elif type(obj) in self._list_type:
+                return [self._entity_to_dict(v) for v in obj]
+            elif type(obj) in self._base_type:
+                return obj
+            elif isinstance(obj, TeaModel):
+                prop_list = [(p, not callable(getattr(obj, p)) and p[0] != "_")
+                             for p in dir(obj)]
+                obj_rtn = {}
+                for i in prop_list:
+                    if i[1]:
+                        obj_rtn[obj._names.get(i[0]) or i[0]] = self._entity_to_dict(
+                            getattr(obj, i[0]))
+                return obj_rtn
+
+        def to_map(self):
+            prop_list = [(p, not callable(getattr(self, p)) and p[0] != "_")
+                         for p in dir(self)]
+            pros = {}
+            for i in prop_list:
+                if i[1]:
+                    pros[self._names.get(i[0]) or i[0]] = self._entity_to_dict(
+                        getattr(self, i[0]))
+            return pros
 
     def test_to_xml(self):
-        self.assertIsNone(Client.to_xml(None))
+        self.assertIsNone(client.to_xml(None))
         model = TestClient.ToBodyModel()
         result = TestClient.ListAllMyBucketsResult()
         buckets = TestClient.Buckets()
@@ -74,11 +106,11 @@ class TestClient(unittest.TestCase):
         result.test_num = 10
         result.test_bool = True
         result.test_null = None
-        xml_str = Client.to_xml(model)
+        xml_str = client.to_xml(model)
         self.assertIsNotNone(xml_str)
 
         root = ET.fromstring(xml_str)
-        re = Client.parse_xml(root)
+        re = client.parse_xml(root)
         self.assertIsNotNone(re)
         self.assertEqual(2,re["ListAllMyBucketsResult"]["listStr"].__len__())
         self.assertEqual("10",re["ListAllMyBucketsResult"]["test_num"])
