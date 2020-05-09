@@ -2,7 +2,7 @@ import unittest
 
 import xml.etree.ElementTree as ET
 
-from tea_xml import client
+from tea_xml.client import Client
 from Tea.model import TeaModel
 from collections import defaultdict
 
@@ -81,7 +81,7 @@ class TestClient(unittest.TestCase):
             return pros
 
     def test_to_xml(self):
-        self.assertIsNone(client.to_xml(None))
+        self.assertIsNone(Client.to_xml(None))
         model = TestClient.ToBodyModel()
         result = TestClient.ListAllMyBucketsResult()
         buckets = TestClient.Buckets()
@@ -106,11 +106,11 @@ class TestClient(unittest.TestCase):
         result.test_num = 10
         result.test_bool = True
         result.test_null = None
-        xml_str = client.to_xml(model)
+        xml_str = Client.to_xml(model)
         self.assertIsNotNone(xml_str)
 
         root = ET.fromstring(xml_str)
-        re = client.parse_xml(root)
+        re = Client.parse_xml(root)
         self.assertIsNotNone(re)
         self.assertEqual(2,re["ListAllMyBucketsResult"]["listStr"].__len__())
         self.assertEqual("10",re["ListAllMyBucketsResult"]["test_num"])
