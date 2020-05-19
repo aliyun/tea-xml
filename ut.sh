@@ -84,7 +84,7 @@ function run_python {
   cd tests || return 126
   pip install coverage
 
-  coverage run --source="tea_xml.client" run_test.py
+  coverage run --source="alibabacloud_tea_xml.client" run_test.py
   cd ../../
   upload_codecov_report python python
 }
