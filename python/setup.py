@@ -24,7 +24,7 @@ Created on 3/20/2020
 @author: Alibaba Cloud
 """
 
-PACKAGE = "tea_xml"
+PACKAGE = "alibabacloud_tea_xml"
 DESCRIPTION = "The tea-xml module of alibabaCloud Python SDK."
 AUTHOR = "Alibaba Cloud"
 AUTHOR_EMAIL = "alibaba-cloud-sdk-dev-team@list.alibaba-inc.com"
@@ -62,4 +62,4 @@ setup_args = {
     )
 }
 
-setup(name='alibabacloud-tea-xml', **setup_args)
+setup(name='alibabacloud_tea_xml', **setup_args)

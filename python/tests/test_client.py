@@ -2,7 +2,7 @@ import unittest
 
 import xml.etree.ElementTree as ET
 
-from tea_xml.client import Client
+from alibabacloud_tea_xml.client import Client
 from Tea.model import TeaModel
 from collections import defaultdict
 

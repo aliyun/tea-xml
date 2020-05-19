@@ -1,13 +1,15 @@
 {
 	"scope": "alibabacloud",
 	"name": "XML",
-	"version": "0.1.5",
+	"version": "0.1.6",
 	"main": "./main.tea",
 	"releases": {
 		"go": "github.com/alibabacloud-go/tea-xml/service:v1.1.0",
 		"java": "com.aliyun:teaxml:0.1.0",
 		"ts": "@alicloud/tea-xml:0.0.1",
-		"php": "alibabacloud/tea-xml:^0.2"
+		"php": "alibabacloud/tea-xml:^0.2",
+		"csharp": "AlibabaCloud.TeaXML:0.0.1",
+		"python": "alibabacloud_tea_xml:0.0.1"
 	},
 	"java": {
 		"package": "com.aliyun.teaxml"
@@ -19,5 +21,9 @@
 	"php": {
 		"package": "AlibabaCloud.Tea.XML",
 		"clientName": "XML"
+	},
+	"python": {
+		"package": "alibabacloud_tea_xml",
+		"clientName": "client"
 	}
 }
