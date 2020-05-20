@@ -41,7 +41,7 @@ class Client:
             i = i + 1
 
     @staticmethod
-    def parse_xml(t):
+    def parse_xml(t, response=None):
         d = {t.tag: {} if t.attrib else None}
         children = list(t)
         if children:
