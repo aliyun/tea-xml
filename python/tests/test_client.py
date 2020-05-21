@@ -1,84 +1,70 @@
 import unittest
 
-import xml.etree.ElementTree as ET
-
 from alibabacloud_tea_xml.client import Client
 from Tea.model import TeaModel
-from collections import defaultdict
 
 
 class TestClient(unittest.TestCase):
     class ListAllMyBucketsResult(TeaModel):
-        def __init__(self):
-                super().__init__()
-                self.owner = None
-                self._names["owner"] = "Owner"
-                self.buckets = None
-                self._names["buckets"] = "Buckets"
-                self.test_str_list = []
-                self._names["test_str_list"] = "listStr"
-                self.owners = []
-                self._names["owners"] = "Owners"
-                self.test_num = 0
-                self.test_null = None
-                self.test_bool = False
-                self.dict = {}
-                
+        def __init__(self, buckets=None, owner=None, test_str_list=None, test_num=None, test_bool=None, test_null=None):
+            self.buckets = buckets
+            self.owner = owner
+            self.test_str_list = test_str_list
+            self.test_num = test_num
+            self.test_bool = test_bool
+            self.test_null = test_null
+            self.owners = []
+
+        def to_map(self):
+            result = {}
+            result['buckets'] = self.buckets
+            result['owners'] = self.owners
+            result['owner'] = self.owner
+            result['test_str_list'] = self.test_str_list
+            result['test_num'] = self.test_num
+            result['test_bool'] = self.test_bool
+            result['test_null'] = self.test_null
+            return result
+
     class Owner(TeaModel):
-        def __init__(self):
-                super().__init__()
-                self.id = 0
-                self.display_name = ""
+        def __init__(self, id=None, display_name=None):
+            self.id = id
+            self.display_name = display_name
+
+        def to_map(self):
+            result = {}
+            result['id'] = self.id
+            result['display_name'] = self.display_name
+            return result
 
     class Bucket(TeaModel):
-        def __init__(self):
-                super().__init__()
-                self.creation_date = ""
-                self.extranet_endpoint = ""
+        def __init__(self, creation_date=None, extranet_endpoint=None):
+            self.creation_date = creation_date
+            self.extranet_endpoint = extranet_endpoint
+
+        def to_map(self):
+            result = {}
+            result['creation_date'] = self.creation_date
+            result['extranet_endpoint'] = self.extranet_endpoint
+            return result
 
     class Buckets(TeaModel):
         def __init__(self):
-                super().__init__()
-                self.bucket = []
-                self._names["bucket"] = "Bucket"
-
-    class ToBodyModel(TeaModel):
-        _base_type = {int, float, bool, complex, str}
-        _list_type = {list, tuple, set}
-        _dict_type = {dict}
-
-        def __init__(self):
-                super().__init__()
-                self.listAllMyBucketsResult = None
-                self._names["listAllMyBucketsResult"] = "ListAllMyBucketsResult"
-
-        def _entity_to_dict(self, obj):
-            if type(obj) in self._dict_type:
-                obj_rtn = {k: self._entity_to_dict(v) for k, v in obj.items()}
-                return obj_rtn
-            elif type(obj) in self._list_type:
-                return [self._entity_to_dict(v) for v in obj]
-            elif type(obj) in self._base_type:
-                return obj
-            elif isinstance(obj, TeaModel):
-                prop_list = [(p, not callable(getattr(obj, p)) and p[0] != "_")
-                             for p in dir(obj)]
-                obj_rtn = {}
-                for i in prop_list:
-                    if i[1]:
-                        obj_rtn[obj._names.get(i[0]) or i[0]] = self._entity_to_dict(
-                            getattr(obj, i[0]))
-                return obj_rtn
+            self.bucket = []
 
         def to_map(self):
-            prop_list = [(p, not callable(getattr(self, p)) and p[0] != "_")
-                         for p in dir(self)]
-            pros = {}
-            for i in prop_list:
-                if i[1]:
-                    pros[self._names.get(i[0]) or i[0]] = self._entity_to_dict(
-                        getattr(self, i[0]))
-            return pros
+            result = {}
+            result['bucket'] = self.bucket
+            return result
+
+    class ToBodyModel(TeaModel):
+        def __init__(self, ListAllMyBucketsResult=None):
+            self.listAllMyBucketsResult = ListAllMyBucketsResult
+
+        def to_map(self):
+            result = {}
+            result['listAllMyBucketsResult'] = self.listAllMyBucketsResult
+            return result
 
     def test_to_xml(self):
         self.assertIsNone(Client.to_xml(None))
@@ -88,29 +74,27 @@ class TestClient(unittest.TestCase):
         bucket1 = TestClient.Bucket()
         bucket1.creation_date = "2015-12-17T18:12:43.000Z"
         bucket1.extranet_endpoint = "oss-cn-shanghai.aliyuncs.com"
-        buckets.bucket.append(bucket1)
+        buckets.bucket.append(bucket1.to_map())
         bucket2 = TestClient.Bucket()
         bucket2.creation_date = "2014-12-25T11:21:04.000Z"
         bucket2.extranet_endpoint = "oss-cn-hangzhou.aliyuncs.com"
-        buckets.bucket.append(bucket2)
+        buckets.bucket.append(bucket2.to_map())
         bucket_none = None
         buckets.bucket.append(bucket_none)
-        result.buckets = buckets
+        result.buckets = buckets.to_map()
         owner = TestClient.Owner()
         owner.id = 512
         owner.display_name = "51264"
-        result.owner = owner
-        model.listAllMyBucketsResult = result
-        result.test_str_list = ["1","2"]
-        result.owners.append(owner)
+        result.owner = owner.to_map()
+        result.test_str_list = ["1", "2"]
+        result.owners.append(owner.to_map())
         result.test_num = 10
         result.test_bool = True
         result.test_null = None
-        xml_str = Client.to_xml(model)
+        model.listAllMyBucketsResult = result.to_map()
+        xml_str = Client.to_xml(model.to_map())
         self.assertIsNotNone(xml_str)
-
-        root = ET.fromstring(xml_str)
-        re = Client.parse_xml(root)
+        re = Client.parse_xml(xml_str)
         self.assertIsNotNone(re)
-        self.assertEqual(2,re["ListAllMyBucketsResult"]["listStr"].__len__())
-        self.assertEqual("10",re["ListAllMyBucketsResult"]["test_num"])
+        self.assertEqual(2, re["listAllMyBucketsResult"]['test_str_list'].__len__())
+        self.assertEqual("10", re["listAllMyBucketsResult"]["test_num"])

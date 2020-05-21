@@ -1,4 +1,4 @@
-import xml.etree.ElementTree as ET
+from xml.etree import ElementTree
 from Tea.model import TeaModel
 from Tea.exceptions import RequiredArgumentException
 from collections import defaultdict
@@ -24,7 +24,7 @@ class Client:
     @staticmethod
     def __get_xml_by_dict(elem, val):
         for k in val:
-            sub_elem = ET.SubElement(elem, k)
+            sub_elem = ElementTree.SubElement(elem, k)
             Client.__get_xml_factory(sub_elem, val[k], elem)
 
     @staticmethod
@@ -36,17 +36,17 @@ class Client:
 
         for item in val:
             if i > 0:
-                sub_elem = ET.SubElement(parent_element, tag_name)
+                sub_elem = ElementTree.SubElement(parent_element, tag_name)
                 Client.__get_xml_factory(sub_elem, item, parent_element)
             i = i + 1
 
     @staticmethod
-    def parse_xml(t, response=None):
+    def _parse_xml(t):
         d = {t.tag: {} if t.attrib else None}
         children = list(t)
         if children:
             dd = defaultdict(list)
-            for dc in map(Client.parse_xml, children):
+            for dc in map(Client._parse_xml, children):
                 for k, v in dc.items():
                     dd[k].append(v)
             d = {t.tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
@@ -64,6 +64,10 @@ class Client:
         return d
 
     @staticmethod
+    def parse_xml(body, response=None):
+        return Client._parse_xml(ElementTree.fromstring(body))
+
+    @staticmethod
     def to_xml(body):
         if body is None:
             return
@@ -79,7 +83,7 @@ class Client:
         else:
             result_xml = ""
             for k in dic:
-                elem = ET.Element(k)
+                elem = ElementTree.Element(k)
                 Client.__get_xml_factory(elem, dic[k])
-                result_xml += bytes.decode(ET.tostring(elem), encoding="utf-8")
+                result_xml += bytes.decode(ElementTree.tostring(elem), encoding="utf-8")
             return result_xml
