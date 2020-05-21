@@ -1,4 +1,4 @@
-'''
+"""
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
  distributed with this work for additional information
@@ -13,7 +13,7 @@
  KIND, either express or implied.  See the License for the
  specific language governing permissions and limitations
  under the License.
-'''
+"""
 
 import os
 from setuptools import setup, find_packages
@@ -32,7 +32,7 @@ URL = "https://github.com/aliyun/tea-xml/tree/master/python"
 TOPDIR = os.path.dirname(__file__) or "."
 VERSION = __import__(PACKAGE).__version__
 
-with open("README.md",encoding="utf-8") as fp:
+with open("README.md", encoding="utf-8") as fp:
     LONG_DESCRIPTION = fp.read()
 
 setup_args = {
