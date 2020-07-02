@@ -65,10 +65,21 @@ class Client:
 
     @staticmethod
     def parse_xml(body, response=None):
+        """
+        Parse body into the response, and put the resposne into a object
+        @param body: source content
+        @param response: target model
+        @return the final object
+        """
         return Client._parse_xml(ElementTree.fromstring(body))
 
     @staticmethod
     def to_xml(body):
+        """
+        Parse body as a xml string
+        @param body: source body
+        @return the xml string
+        """
         if body is None:
             return
 
