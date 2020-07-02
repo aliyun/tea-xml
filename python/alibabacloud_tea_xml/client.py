@@ -14,9 +14,9 @@ class Client:
 
         if isinstance(val, dict):
             Client.__get_xml_by_dict(elem, val)
-        elif type(val) in Client._LIST_TYPE:
+        elif isinstance(val, Client._LIST_TYPE):
             if parent_element is None:
-                raise RequiredArgumentException("parent_element")
+                raise RequiredArgumentException("Missing root tag")
             Client.__get_xml_by_list(elem, val, parent_element)
         else:
             elem.text = str(val)
@@ -81,7 +81,7 @@ class Client:
         if dic.__len__() == 0:
             return ""
         else:
-            result_xml = ""
+            result_xml = '<?xml version="1.0" encoding="utf-8"?>'
             for k in dic:
                 elem = ElementTree.Element(k)
                 Client.__get_xml_factory(elem, dic[k])
