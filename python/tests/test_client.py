@@ -92,9 +92,19 @@ class TestClient(unittest.TestCase):
         result.test_bool = True
         result.test_null = None
         model.listAllMyBucketsResult = result.to_map()
-        xml_str = Client.to_xml(model.to_map())
+        xml_str = Client.to_xml(model)
         self.assertIsNotNone(xml_str)
         re = Client.parse_xml(xml_str)
         self.assertIsNotNone(re)
         self.assertEqual(2, re["listAllMyBucketsResult"]['test_str_list'].__len__())
         self.assertEqual("10", re["listAllMyBucketsResult"]["test_num"])
+        dic = {}
+        self.assertEqual("", Client.to_xml(dic))
+        try:
+            dic = {
+                'test': ['test1', 'test2']
+            }
+            Client.to_xml(dic)
+        except Exception as e:
+            self.assertEqual('Missing root tag', str(e))
+

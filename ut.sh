@@ -79,13 +79,12 @@ function run_python {
   echo $PYTHONPATH 
   # install
   cd python || return 126
-  python setup.py build
-  python setup.py install
-  cd tests || return 126
   pip install coverage
+  pip install alibabacloud-tea
 
-  coverage run --source="alibabacloud_tea_xml.client" run_test.py
-  cd ../../
+  coverage run --source="./alibabacloud_tea_xml" ./tests/run_test.py
+
+  cd ../
   upload_codecov_report python python
 }
 
