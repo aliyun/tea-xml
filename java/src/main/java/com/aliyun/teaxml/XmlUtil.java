@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class XmlUtil {
     public static Map<String, Object> DeserializeXml(String xmlStr, Class type) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<String, Object>();
         if (StringUtils.isEmpty(xmlStr)) {
             return result;
         }
