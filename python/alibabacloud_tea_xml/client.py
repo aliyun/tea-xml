@@ -1,6 +1,5 @@
 from xml.etree import ElementTree
 from Tea.model import TeaModel
-from Tea.exceptions import RequiredArgumentException
 from collections import defaultdict
 
 
@@ -16,7 +15,7 @@ class Client:
             Client.__get_xml_by_dict(elem, val)
         elif isinstance(val, Client._LIST_TYPE):
             if parent_element is None:
-                raise RequiredArgumentException("Missing root tag")
+                raise RuntimeError("Missing root tag")
             Client.__get_xml_by_list(elem, val, parent_element)
         else:
             elem.text = str(val)
