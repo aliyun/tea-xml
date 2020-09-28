@@ -3,6 +3,9 @@
 
 ## Alibaba Cloud Tea XML
 
+[![Travis Build Status](https://travis-ci.org/aliyun/tea-xml.svg?branch=master)](https://travis-ci.org/aliyun/tea-xml)
+[![codecov](https://codecov.io/gh/aliyun/tea-xml/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/tea-xml)
+
 ## 安装
 - [Go](./golang/README-CN.md)
 - [.Net](./csharp/README-CN.md)
