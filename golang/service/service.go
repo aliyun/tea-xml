@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/alibabacloud-go/tea/tea"
 )
@@ -79,6 +80,7 @@ func xmlUnmarshal(body []byte, result interface{}) (interface{}, error) {
 	for i := 0; i < dataType.NumField(); i++ {
 		field := dataType.Field(i)
 		name, containsNameTag := field.Tag.Lookup("xml")
+		name = strings.Replace(name, ",omitempty", "", -1)
 		if containsNameTag {
 			if name == start {
 				realType := dataValue.Field(i).Type()
