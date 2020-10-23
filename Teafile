@@ -25,5 +25,13 @@
 	"python": {
 		"package": "alibabacloud_tea_xml",
 		"clientName": "client"
+	},
+    "cpp": {
+		"packageInfo": {
+			"git": {
+				"scope": "alibabacloud-sdk-cpp",
+				"project": "dara-xml"
+			}
+		}
 	}
 }
