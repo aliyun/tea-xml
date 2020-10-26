@@ -13,6 +13,8 @@
 - [TypeScript/Node.js](./ts/README-CN.md)
 - [Swift](./swift/README-CN.md)
 - [PHP](./php/README-CN.md)
+- [Python](./python/README-CN.md)
+- [C++](./cpp/README-CN.md)
 
 ## 问题
 [Opening an Issue](https://github.com/aliyun/tea-xml/issues/new)，不符合指南的问题可能会立即关闭。
