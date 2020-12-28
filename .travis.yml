@@ -50,11 +50,8 @@ jobs:
       php: '7.3'
       env: TEA_UTIL_ENV="php"
     - language: python
-      python: 3.4
-      env: TEA_UTIL_ENV="python"
-    - language: python
-      python: 3.5
-      env: TEA_UTIL_ENV="python"
+      python: 2.7
+      env: TEA_UTIL_ENV="python2"
     - language: python
       python: 3.6
       env: TEA_UTIL_ENV="python"
@@ -63,6 +60,9 @@ jobs:
       env: TEA_UTIL_ENV="python"
     - language: python
       python: 3.8
+      env: TEA_UTIL_ENV="python"
+    - language: python
+      python: 3.9
       env: TEA_UTIL_ENV="python"
 
 script:
