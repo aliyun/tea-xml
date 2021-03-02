@@ -15,6 +15,7 @@
  under the License.
 """
 
+import sys
 from setuptools import setup, find_packages
 
 """
@@ -30,8 +31,12 @@ AUTHOR_EMAIL = "alibaba-cloud-sdk-dev-team@list.alibaba-inc.com"
 URL = "https://github.com/aliyun/tea-xml/tree/master/python"
 VERSION = __import__(PACKAGE).__version__
 
-with open("README.md") as fp:
-    LONG_DESCRIPTION = fp.read()
+if sys.version_info.major == 2:
+    with open("README.md") as fp:
+        LONG_DESCRIPTION = fp.read()
+else:
+    with open("README.md", encoding="utf-8") as fp:
+        LONG_DESCRIPTION = fp.read()
 
 setup_args = {
     'version': VERSION,
