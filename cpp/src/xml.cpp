@@ -39,7 +39,7 @@ boost::any parse_xml(boost::property_tree::ptree pt) {
   return boost::any(m);
 }
 
-map<string, boost::any> Darabonba_XML::Client::parseXml(const shared_ptr<string>& body, const shared_ptr<void>& response) {
+map<string, boost::any> Darabonba_XML::Client::parseXml(std::shared_ptr<string> body, std::shared_ptr<void> response) {
   string v = !body ? "" : *body;
   stringstream ss(v);
   using namespace boost::property_tree;
@@ -97,7 +97,7 @@ string to_xml(boost::any val, string key) {
   return str;
 }
 
-string Darabonba_XML::Client::toXML(shared_ptr<map<string, boost::any>> body) {
+string Darabonba_XML::Client::toXML(std::shared_ptr<map<string, boost::any>> body) {
   string s;
   if (!body || body->empty()) {
     return s;
