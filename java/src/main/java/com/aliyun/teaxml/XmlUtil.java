@@ -16,37 +16,37 @@ import java.util.List;
 import java.util.Map;
 
 public class XmlUtil {
-    public static Map<String, Object> DeserializeXml(String xmlStr, Class type) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    public static Map<String, Object> DeserializeXml(String xmlStr, Class type) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, DocumentException {
         Map<String, Object> result = new HashMap<String, Object>();
         if (StringUtils.isEmpty(xmlStr)) {
             return result;
         }
         Document contentXmlDoc;
-        try {
-            contentXmlDoc = DocumentHelper.parseText(xmlStr);
-        } catch (DocumentException e) {
-            result = new Gson().fromJson(xmlStr, Map.class);
-            return result;
-        }
+        contentXmlDoc = DocumentHelper.parseText(xmlStr);
         Element rootElement = contentXmlDoc.getRootElement();
-        Field[] properties = type.getFields();
-        Field resultField = null;
-        for (Field field : properties) {
-            field.setAccessible(true);
-            NameInMap nameAnnotation = field.getAnnotation(NameInMap.class);
-            String realName = nameAnnotation == null ? field.getName() : nameAnnotation.value();
-            if (realName.equals(rootElement.getName())) {
-                resultField = field;
-                break;
+        if (type != null) {
+            Field[] properties = type.getFields();
+            Field resultField = null;
+            for (Field field : properties) {
+                field.setAccessible(true);
+                NameInMap nameAnnotation = field.getAnnotation(NameInMap.class);
+                String realName = nameAnnotation == null ? field.getName() : nameAnnotation.value();
+                if (realName.equals(rootElement.getName())) {
+                    resultField = field;
+                    break;
+                }
             }
-        }
-        if (null != resultField) {
-            if (String.class == resultField.getType()) {
-                result.put(rootElement.getName(), rootElement.getText());
-                return result;
+            if (null != resultField) {
+                if (String.class == resultField.getType()) {
+                    result.put(rootElement.getName(), rootElement.getText());
+                    return result;
+                }
+                result.put(rootElement.getName(), getValueFromXml(rootElement, resultField.getType()));
             }
-            result.put(rootElement.getName(), getValueFromXml(rootElement, resultField.getType()));
+        } else {
+            ElementToMap(rootElement, result);
         }
+
         return result;
     }
 
@@ -101,6 +101,38 @@ public class XmlUtil {
         return value;
     }
 
+    private static Object ElementToMap(Element element, Map<String, Object> map) {
+        List<Element> elements = element.elements();
+        if (elements.size() == 0) {
+            if (null != map) {
+                map.put(element.getName(), element.getTextTrim());
+            }
+            return element.getTextTrim();
+        } else {
+            Map<String, Object> map2 = new HashMap<>();
+            if (null != map) {
+                map.put(element.getName(), map2);
+            }
+            String repetitionName = "";
+            for (Element element2 : elements) {
+                if (repetitionName.equals(element2.getName())) {
+                    List<Object> list = (List) map2.get(repetitionName);
+                    list.add(ElementToMap(element2, null));
+                } else if (map2.containsKey(element2.getName())) {
+                    repetitionName = element2.getName();
+                    Object remove = map2.remove(repetitionName);
+                    List<Object> list = new ArrayList<>();
+                    list.add(remove);
+                    list.add(ElementToMap(element2, null));
+                    map2.put(element2.getName(), list);
+                } else {
+                    ElementToMap(element2, map2);
+                }
+            }
+            return map2;
+        }
+    }
+
     public static String mapToXml(Map<String, Object> map) throws IllegalAccessException {
         if (null == map || map.isEmpty()) {
             return "";
@@ -119,7 +151,7 @@ public class XmlUtil {
         Class clazz = value.getClass();
         if (Map.class.isAssignableFrom(clazz)) {
             Map<String, Object> map = (Map<String, Object>) value;
-            for (Map.Entry<String, Object> entry: map.entrySet()) {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
                 if (entry.getValue() == null) {
                     continue;
                 }
@@ -132,16 +164,16 @@ public class XmlUtil {
             }
         } else if (List.class.isAssignableFrom(clazz)) {
             List<Object> list = (List) value;
-            for (Object sub: list) {
+            for (Object sub : list) {
                 if (sub == null) {
                     continue;
                 }
                 Element subElement = element.addElement(key);
                 setValue(subElement, key, sub);
             }
-        }else if (TeaModel.class.isAssignableFrom(clazz)) {
+        } else if (TeaModel.class.isAssignableFrom(clazz)) {
             Map<String, Object> map = ((TeaModel) value).toMap();
-            for (Map.Entry<String, Object> entry: map.entrySet()) {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
                 if (entry.getValue() == null) {
                     continue;
                 }
