@@ -29,9 +29,8 @@ func Test_ParseXml(t *testing.T) {
 	<num>10</num>`
 	result := ParseXml(tea.String(str), new(validatorTest))
 	utils.AssertEqual(t, 1, len(result))
-
 	str = `<?xml version="1.0" encoding="utf-8" standalone="no"?>
-	<num/num>`
+	<num></num>`
 	result = ParseXml(tea.String(str), new(validatorTest))
 	utils.AssertEqual(t, 1, len(result))
 }
