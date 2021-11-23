@@ -1,2 +1,5 @@
+2021-11-23 Version: v0.0.2
+- Add case null in parseXml
+
 2020-02-27 Version: v0.0.1
 - v0.0.1
