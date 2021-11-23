@@ -127,6 +127,116 @@ describe('client', function () {
     assert.ok(false);
   });
 
+  it('parseXml with null should ok', async function () {
+
+    const nullXml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '    <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">\n' +
+      '        <Name>oss-example</Name>\n' +
+      '        <Prefix></Prefix>\n' +
+      '        <Marker></Marker>\n' +
+      '        <MaxKeys>100</MaxKeys>\n' +
+      '        <Delimiter></Delimiter>\n' +
+      '        <IsTruncated>false</IsTruncated>\n' +
+      '        <Contents>\n' +
+      '            <Key>fun/movie/001.avi</Key>\n' +
+      '            <LastModified>2012-02-24T08:43:07.000Z</LastModified>\n' +
+      '            <ETag>5B3C1A2E053D763E1B002CC607C5A0FE1****</ETag>\n' +
+      '            <Type>Normal</Type>\n' +
+      '            <Size>344606</Size>\n' +
+      '            <StorageClass>Standard</StorageClass>\n' +
+      '            <Owner>\n' +
+      '                <ID>0022012</ID>\n' +
+      '                <DisplayName>user-example</DisplayName>\n' +
+      '            </Owner>\n' +
+      '        </Contents>\n' +
+      '        <Contents>\n' +
+      '            <Key>fun/movie/007.avi</Key>\n' +
+      '            <LastModified>2012-02-24T08:43:07.000Z</LastModified>\n' +
+      '            <ETag>5B3C1A2E053D763E1B002CC607C5A0FE2****</ETag>\n' +
+      '            <Type>Normal</Type>\n' +
+      '            <Size>144606</Size>\n' +
+      '            <StorageClass>IA</StorageClass>\n' +
+      '            <Owner>\n' +
+      '                <ID>0022012</ID>\n' +
+      '                <DisplayName>user-example</DisplayName>\n' +
+      '            </Owner>\n' +
+      '        </Contents>\n' +
+      '        <Contents>\n' +
+      '            <Key>oss.jpg</Key>\n' +
+      '            <LastModified>2012-02-24T08:43:07.000Z</LastModified>\n' +
+      '            <ETag>5B3C1A2E053D763E1B002CC607C5A0FE2****</ETag>\n' +
+      '            <Type>Normal</Type>\n' +
+      '            <Size>144606</Size>\n' +
+      '            <StorageClass>IA</StorageClass>\n' +
+      '            <Owner>\n' +
+      '                <ID>0022012</ID>\n' +
+      '                <DisplayName>user-example</DisplayName>\n' +
+      '            </Owner>\n' +
+      '        </Contents>\n' +
+      '    </ListBucketResult>'
+
+    const data = {
+      ListBucketResult: {
+        $: {
+          xmlns: "http://doc.oss-cn-hangzhou.aliyuncs.com"
+        },
+        Name: "oss-example",
+        Prefix: "",
+        Marker: "",
+        MaxKeys: "100",
+        Delimiter: "",
+        IsTruncated: "false",
+        Contents: [
+          {
+            Key: "fun/movie/001.avi",
+            LastModified: "2012-02-24T08:43:07.000Z",
+            ETag: "5B3C1A2E053D763E1B002CC607C5A0FE1****",
+            Type: "Normal",
+            Size: "344606",
+            StorageClass: "Standard",
+            Owner: {
+              ID: "0022012",
+              DisplayName: "user-example"
+            }
+          },
+          {
+            Key: "fun/movie/007.avi",
+            LastModified: "2012-02-24T08:43:07.000Z",
+            ETag: "5B3C1A2E053D763E1B002CC607C5A0FE2****",
+            Type: "Normal",
+            Size: "144606",
+            StorageClass: "IA",
+            Owner: {
+              ID: "0022012",
+              DisplayName: "user-example"
+            }
+          },
+          {
+            Key: "oss.jpg",
+            LastModified: "2012-02-24T08:43:07.000Z",
+            ETag: "5B3C1A2E053D763E1B002CC607C5A0FE2****",
+            Type: "Normal",
+            Size: "144606",
+            StorageClass: "IA",
+            Owner: {
+              ID: "0022012",
+              DisplayName: "user-example"
+            }
+          }
+        ]
+      }
+    };
+    assert.deepStrictEqual(client.parseXml(nullXml, null), data);
+    assert.ok(client.parseXml(errorXml, null));
+
+    try {
+      client.parseXml('ddsfadf', null)
+    } catch (err) {
+      assert.ok(err);
+      return;
+    }
+    assert.ok(false);
+  });
   it('_toXML should ok', function () {
     const data = {
       root: {
@@ -249,7 +359,5 @@ describe('client', function () {
       }
     });
   });
-
-
 });
 
