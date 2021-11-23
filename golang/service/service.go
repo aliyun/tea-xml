@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/alibabacloud-go/tea/tea"
+	v2 "github.com/clbanning/mxj/v2"
 )
 
 func ToXML(obj map[string]interface{}) *string {
@@ -18,6 +19,13 @@ func ParseXml(val *string, result interface{}) map[string]interface{} {
 	resp := make(map[string]interface{})
 
 	start := getStartElement([]byte(tea.StringValue(val)))
+	if result == nil {
+		vm, err := v2.NewMapXml([]byte(tea.StringValue(val)))
+		if err != nil {
+			return nil
+		}
+		return vm
+	}
 	out, err := xmlUnmarshal([]byte(tea.StringValue(val)), result)
 	if err != nil {
 		return resp
