@@ -57,5 +57,8 @@ public class ClientTest {
                 "</ListBucketResult>";
         Map map = Client.parseXml(xml, GetBucketResponse.class);
         Assert.assertEquals(7, ((Map) map.get("ListBucketResult")).size());
+        Map map1 = Client.parseXml(xml, null);
+        Assert.assertEquals("sdk-script", ((Map) map1.get("ListBucketResult")).get("Name"));
+        Assert.assertEquals(7, ((Map) map1.get("ListBucketResult")).size());
     }
 }
