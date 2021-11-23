@@ -29,11 +29,20 @@ func Test_ParseXml(t *testing.T) {
 	<num>10</num>`
 	result := ParseXml(tea.String(str), new(validatorTest))
 	utils.AssertEqual(t, 1, len(result))
-
 	str = `<?xml version="1.0" encoding="utf-8" standalone="no"?>
-	<num/num>`
+	<num></num>`
 	result = ParseXml(tea.String(str), new(validatorTest))
 	utils.AssertEqual(t, 1, len(result))
+	xmlVal := `<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<students>
+    <student number="1001">
+        <name>zhangSan</name>
+        <age>23</age>
+        <sex>male</sex>
+    </student>
+</students>`
+	res := ParseXml(tea.String(xmlVal), nil)
+	utils.AssertEqual(t, 1, len(res))
 }
 
 func Test_ToXML(t *testing.T) {
