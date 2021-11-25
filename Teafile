@@ -1,12 +1,12 @@
 {
 	"scope": "darabonba",
 	"name": "XML",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"main": "./main.tea",
 	"releases": {
-		"go": "github.com/alibabacloud-go/tea-xml/service:v1.1.1",
-		"java": "com.aliyun:teaxml:0.1.1",
-		"ts": "@alicloud/tea-xml:0.0.1",
+		"go": "github.com/alibabacloud-go/tea-xml/service:v1.1.2",
+		"java": "com.aliyun:teaxml:0.1.2",
+		"ts": "@alicloud/tea-xml:0.0.2",
 		"php": "alibabacloud/tea-xml:^0.2",
 		"csharp": "AlibabaCloud.TeaXML:0.0.1",
 		"python": "alibabacloud_tea_xml:0.0.2",
