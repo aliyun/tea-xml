@@ -5,7 +5,7 @@
 	"main": "./main.tea",
 	"releases": {
 		"go": "github.com/alibabacloud-go/tea-xml/service:v1.1.2",
-		"java": "com.aliyun:teaxml:0.1.2",
+		"java": "com.aliyun:tea-xml:0.1.2",
 		"ts": "@alicloud/tea-xml:0.0.2",
 		"php": "alibabacloud/tea-xml:^0.2",
 		"csharp": "AlibabaCloud.TeaXML:0.0.1",
