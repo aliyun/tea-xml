@@ -104,32 +104,36 @@ public class XmlUtil {
     private static Object ElementToMap(Element element, Map<String, Object> map) {
         List<Element> elements = element.elements();
         if (elements.size() == 0) {
+            String context = StringUtils.isEmpty(element.getTextTrim()) ? null : element.getTextTrim();
             if (null != map) {
-                map.put(element.getName(), element.getTextTrim());
+                map.put(element.getName(), context);
             }
-            return element.getTextTrim();
+            return context;
         } else {
-            Map<String, Object> map2 = new HashMap<>();
+            Map<String, Object> subMap = new HashMap();
             if (null != map) {
-                map.put(element.getName(), map2);
+                map.put(element.getName(), subMap);
             }
-            String repetitionName = "";
-            for (Element element2 : elements) {
-                if (repetitionName.equals(element2.getName())) {
-                    List<Object> list = (List) map2.get(repetitionName);
-                    list.add(ElementToMap(element2, null));
-                } else if (map2.containsKey(element2.getName())) {
-                    repetitionName = element2.getName();
-                    Object remove = map2.remove(repetitionName);
-                    List<Object> list = new ArrayList<>();
-                    list.add(remove);
-                    list.add(ElementToMap(element2, null));
-                    map2.put(element2.getName(), list);
+            for (Element elem : elements) {
+                if (subMap.containsKey(elem.getName())) {
+                    Object o = subMap.get(elem.getName());
+                    Class clazz = o.getClass();
+                    if (List.class.isAssignableFrom(clazz)) {
+                        ((List) o).add(ElementToMap(elem, null));
+                    } else if (Map.class.isAssignableFrom(clazz)) {
+                        List list = new ArrayList();
+                        Map remove = (Map) subMap.remove(elem.getName());
+                        list.add(remove);
+                        list.add(ElementToMap(elem, null));
+                        subMap.put(elem.getName(), list);
+                    } else {
+                        ElementToMap(elem, subMap);
+                    }
                 } else {
-                    ElementToMap(element2, map2);
+                    ElementToMap(elem, subMap);
                 }
             }
-            return map2;
+            return subMap;
         }
     }
 
