@@ -52,6 +52,11 @@ namespace tests
             ToBodyModel teaModel = TeaModel.ToObject<ToBodyModel>(xmlBody);
             Assert.NotNull(teaModel);
             Assert.Equal(1, teaModel.listAllMyBucketsResult.TestDouble);
+
+            string xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<body><Contents><Owner><DisplayName>disName</DisplayName></Owner><Key>key</Key></Contents><Contents/></body>";
+            Dictionary<string, object> map = DeserializeXml(xml, null);
+            Assert.Equal(true, ((List<Dictionary<string, object>>)map["body"])[0].ContainsKey("Key"));
         }
     }
 }

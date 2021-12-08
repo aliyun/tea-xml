@@ -22,26 +22,32 @@ namespace AlibabaCloud.TeaXML.Utils
             for (int i = 0; i < nodeList.Count; i++)
             {
                 XmlNode root = nodeList.Item(i);
-                PropertyInfo[] properties = type.GetProperties();
-                foreach (PropertyInfo p in properties)
+                if (type != null)
                 {
-                    Type propertyType = p.PropertyType;
-                    NameInMapAttribute attribute = p.GetCustomAttribute(typeof(NameInMapAttribute)) as NameInMapAttribute;
-                    string realName = attribute == null ? p.Name : attribute.Name;
-                    if (root.Name == realName)
+                    PropertyInfo[] properties = type.GetProperties();
+                    foreach (PropertyInfo p in properties)
                     {
-                        if (!typeof(TeaModel).IsAssignableFrom(propertyType))
+                        Type propertyType = p.PropertyType;
+                        NameInMapAttribute attribute = p.GetCustomAttribute(typeof(NameInMapAttribute)) as NameInMapAttribute;
+                        string realName = attribute == null ? p.Name : attribute.Name;
+                        if (root.Name == realName)
                         {
-                            result.Add(realName, root.InnerText);
-                        }
-                        else
-                        {
-                            result.Add(realName, getDictFromXml(root, propertyType));
+                            if (!typeof(TeaModel).IsAssignableFrom(propertyType))
+                            {
+                                result.Add(realName, root.InnerText);
+                            }
+                            else
+                            {
+                                result.Add(realName, getDictFromXml(root, propertyType));
+                            }
                         }
                     }
                 }
+                else
+                {
+                    ElementToDict(root, result);
+                }
             }
-
             return result;
         }
 
@@ -145,6 +151,52 @@ namespace AlibabaCloud.TeaXML.Utils
             else
             {
                 return Convert.ChangeType(value, propertyType);
+            }
+        }
+
+        private static object ElementToDict(XmlNode element, Dictionary<string, object> nodeDict)
+        {
+            XmlNodeList elements = element.ChildNodes;
+            if (elements.Count == 0)
+            {
+                string context = string.IsNullOrEmpty(element.InnerText.Trim()) ? null : element.InnerText.Trim();
+                nodeDict.Add(element.Name, context);
+                return context;
+            }
+            else
+            {
+                Dictionary<string, object> subDict = new Dictionary<string, object>();
+                nodeDict.Add(element.Name, subDict);
+                foreach (XmlNode subNode in elements)
+                {
+                    if (subDict.ContainsKey(subNode.Name))
+                    {
+                        object o = subDict[subNode.Name];
+                        Type type = o.GetType();
+                        if (typeof(IList).IsAssignableFrom(type))
+                        {
+                            ((IList)o).Add(ElementToDict(subNode, null));
+                        }
+                        else if (typeof(IDictionary).IsAssignableFrom(type))
+                        {
+                            List<object> list = new List<object>();
+                            Dictionary<string, object> remove = (Dictionary<string, object>)subDict[subNode.Name];
+                            subDict.Remove(subNode.Name);
+                            list.Add(remove);
+                            list.Add(ElementToDict(subNode, null));
+                            subDict.Add(subNode.Name, list);
+                        }
+                        else
+                        {
+                            ElementToDict(subNode, subDict);
+                        }
+                    }
+                    else
+                    {
+                        ElementToDict(subNode, subDict);
+                    }
+                }
+                return subDict;
             }
         }
 
