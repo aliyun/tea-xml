@@ -7,19 +7,22 @@ class XML
     public static function parseXml($xmlStr, $response)
     {
         $res    = self::parse($xmlStr);
-        if (\is_string($response)) {
-            $response = new $response();
-        }
-        $prop   = get_object_vars($response);
-        $target = [];
-
-        foreach ($res as $k => $v) {
-            if (isset($prop[$k])) {
-                $target[$k] = $v;
+        if ($response === null) {
+            return $ref;
+        } else {
+            if (\is_string($response)) {
+                $response = new $response();
             }
+            $prop   = get_object_vars($response);
+            $target = [];
+    
+            foreach ($res as $k => $v) {
+                if (isset($prop[$k])) {
+                    $target[$k] = $v;
+                }
+            }
+            return $target;
         }
-
-        return $target;
     }
 
     public static function toXML($array)
