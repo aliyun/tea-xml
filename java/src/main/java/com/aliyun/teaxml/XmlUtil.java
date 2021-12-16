@@ -110,7 +110,7 @@ public class XmlUtil {
             }
             return context;
         } else {
-            Map<String, Object> subMap = new HashMap();
+            Map<String, Object> subMap = new HashMap<String, Object>();
             if (null != map) {
                 map.put(element.getName(), subMap);
             }
@@ -127,7 +127,11 @@ public class XmlUtil {
                         list.add(ElementToMap(elem, null));
                         subMap.put(elem.getName(), list);
                     } else {
-                        ElementToMap(elem, subMap);
+                        List list = new ArrayList();
+                        Object remove = subMap.remove(elem.getName());
+                        list.add(remove);
+                        list.add(ElementToMap(elem, null));
+                        subMap.put(elem.getName(), list);
                     }
                 } else {
                     ElementToMap(elem, subMap);

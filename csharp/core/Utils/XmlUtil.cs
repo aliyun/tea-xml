@@ -188,7 +188,11 @@ namespace AlibabaCloud.TeaXML.Utils
                         }
                         else
                         {
-                            ElementToDict(subNode, subDict);
+                            List<object> list = new List<object>();
+                            list.Add(o);
+                            subDict.Remove(subNode.Name);
+                            list.Add(ElementToDict(subNode, null));
+                            subDict.Add(subNode.Name, list);
                         }
                     }
                     else
