@@ -1,0 +1,30 @@
+name: .NET
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.2.x
+    - name: install altcover
+      run: cd csharp/core && dotnet tool install --global altcover.visualizer
+    - name: Install dependencies
+      run: cd csharp/core && dotnet restore
+    - name: Build
+      run: cd csharp/core && dotnet build --configuration Release --no-restore
+    - name: Test
+      run: cd csharp && dotnet test tests/ /p:AltCover=true
