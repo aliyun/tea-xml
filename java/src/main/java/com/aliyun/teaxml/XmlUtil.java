@@ -3,7 +3,6 @@ package com.aliyun.teaxml;
 import com.aliyun.tea.NameInMap;
 import com.aliyun.tea.TeaModel;
 import com.aliyun.tea.utils.StringUtils;
-import com.google.gson.Gson;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
