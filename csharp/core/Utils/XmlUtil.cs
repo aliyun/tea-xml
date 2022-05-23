@@ -160,13 +160,17 @@ namespace AlibabaCloud.TeaXML.Utils
             if (elements.Count == 0)
             {
                 string context = string.IsNullOrEmpty(element.InnerText.Trim()) ? null : element.InnerText.Trim();
-                nodeDict.Add(element.Name, context);
+                if (nodeDict != null) {
+                    nodeDict.Add(element.Name, context);
+                }
                 return context;
             }
             else
             {
                 Dictionary<string, object> subDict = new Dictionary<string, object>();
-                nodeDict.Add(element.Name, subDict);
+                if (nodeDict != null) {
+                    nodeDict.Add(element.Name, subDict);
+                }
                 foreach (XmlNode subNode in elements)
                 {
                     if (subDict.ContainsKey(subNode.Name))
