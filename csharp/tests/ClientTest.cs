@@ -55,8 +55,10 @@ namespace tests
 
             string xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<body><Contents><Owner><DisplayName>disName</DisplayName></Owner><Key>key</Key></Contents><Contents/></body>";
-            Dictionary<string, object> map = DeserializeXml(xml, null);
-            Assert.Equal(true, ((List<Dictionary<string, object>>)map["body"])[0].ContainsKey("Key"));
+            Dictionary<string, object> map = Client.ParseXml(xml, null);
+            Assert.True(((Dictionary<string, object>)map["body"]).ContainsKey("Contents"));
+            List<object> list = (List<object>)((Dictionary<string, object>)map["body"])["Contents"];
+            Assert.Equal(2, list.Count);
         }
     }
 }
