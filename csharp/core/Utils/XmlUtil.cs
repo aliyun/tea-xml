@@ -48,6 +48,10 @@ namespace AlibabaCloud.TeaXML.Utils
                     ElementToDict(root, result);
                 }
             }
+            if (result.ContainsKey("xml") && result["xml"].ToString().Contains("version=\"1.0\""))
+            {
+                result.Remove("xml");
+            }
             return result;
         }
 
