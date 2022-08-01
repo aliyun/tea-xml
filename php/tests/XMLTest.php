@@ -23,13 +23,13 @@ class RpcUtilsTest extends TestCase
         $name  = $res['name'];
         $value = $res['value'];
         $this->assertEquals('test', $name);
-        $this->assertEquals('1', $value);
+        $this->assertEquals(1, $value);
 
         $res   = XML::parseXml($this->xmlStr, null);
         $name  = $res['name'];
         $value = $res['value'];
         $this->assertEquals('test', $name);
-        $this->assertEquals('1', $value);
+        $this->assertEquals(1, $value);
     }
 
     public function testArrayToXML()

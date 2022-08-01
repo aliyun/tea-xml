@@ -1,39 +1,46 @@
-# name: PHP Composer
+name: PHP Composer
 
-# on:
-#   push:
-#     branches: [ master ]
-#   pull_request:
-#     branches: [ master ]
-# defaults:
-#   run:
-#     shell: bash
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+defaults:
+  run:
+    shell: bash
+    working-directory: php
 
-# permissions:
-#   contents: read
+permissions:
+  contents: read
 
-# jobs:
-#   build:
+jobs:
+  build:
 
-#     runs-on: ubuntu-latest
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest]
+        php-versions: ['5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1']
+    name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
 
-#     steps:
-#     - uses: actions/checkout@v3
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
 
-#     - name: Validate composer.json and composer.lock
-#       run: cd php && composer validate --strict
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+        extensions: mbstring, intl
+        ini-values: post_max_size=256M, max_execution_time=180
+        coverage: xdebug        
+        tools: php-cs-fixer, phpunit
+    
+    - name: Validate composer.json and composer.lock
+      run: composer validate
 
-#     - name: Cache Composer packages
-#       id: composer-cache
-#       uses: actions/cache@v3
-#       with:
-#         path: php/vendor
-#         key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-#         restore-keys: |
-#           ${{ runner.os }}-php-
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest
 
-#     - name: Install dependencies
-#       run: cd php && composer install --prefer-dist --no-progress
-
-#     - name: Run test suite
-#       run: cd php && composer run-script test
+    - name: Run test case
+      run: composer test
