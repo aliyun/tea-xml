@@ -161,7 +161,7 @@ namespace AlibabaCloud.TeaXML.Utils
         private static object ElementToDict(XmlNode element, Dictionary<string, object> nodeDict)
         {
             XmlNodeList elements = element.ChildNodes;
-            if (elements.Count == 0)
+            if (elements.Count == 0 || (elements.Count == 1 && !elements[0].HasChildNodes))
             {
                 string context = string.IsNullOrEmpty(element.InnerText.Trim()) ? null : element.InnerText.Trim();
                 if (nodeDict != null)
