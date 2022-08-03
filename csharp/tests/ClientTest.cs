@@ -61,6 +61,9 @@ namespace tests
             Assert.True(((Dictionary<string, object>)map["body"]).ContainsKey("Contents"));
             List<object> list = (List<object>)((Dictionary<string, object>)map["body"])["Contents"];
             Assert.Equal(2, list.Count);
+            Assert.Equal("key", ((Dictionary<string, object>)list[0])["Key"]);
+            Assert.Equal("disName", ((Dictionary<string, object>)((Dictionary<string, object>)list[0])["Owner"])["DisplayName"]);
+            Assert.Null((Dictionary<string, object>)list[1]);
         }
     }
 }

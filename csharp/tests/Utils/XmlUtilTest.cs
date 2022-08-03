@@ -38,6 +38,7 @@ namespace tests.Utils
             model.listAllMyBucketsResult.TestUShort = 7;
             model.listAllMyBucketsResult.TestBool = true;
             model.listAllMyBucketsResult.TestNull = null;
+            model.listAllMyBucketsResult.TestString = "string";
             model.listAllMyBucketsResult.TestListNull = null;
             model.listAllMyBucketsResult.dict = new Dictionary<string, string> { { "key", "value" } };
         }

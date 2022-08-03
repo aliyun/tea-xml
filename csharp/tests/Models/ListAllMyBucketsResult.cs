@@ -35,6 +35,8 @@ namespace tests.Models
 
         public string TestNull { get; set; }
 
+        public string TestString { get; set; }
+
         public bool? TestBool { get; set; }
 
         public Dictionary<string, string> dict { get; set; }
