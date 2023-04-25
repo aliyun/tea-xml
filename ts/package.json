@@ -14,7 +14,7 @@
   "dependencies": {
     "@alicloud/tea-typescript": "^1",
     "@types/xml2js": "^0.4.5",
-    "xml2js": "^0.4.22"
+    "xml2js": "^0.5.0"
   },
   "files": [
     "dist",
