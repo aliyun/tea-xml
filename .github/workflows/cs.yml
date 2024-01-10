@@ -21,7 +21,7 @@ jobs:
       with:
         dotnet-version: 2.2.x
     - name: install altcover
-      run: cd csharp/core && dotnet tool install --global altcover.visualizer
+      run: cd csharp/core && dotnet tool install --global altcover.visualizer --version 8.6.14
     - name: Install dependencies
       run: cd csharp/core && dotnet restore
     - name: Build
