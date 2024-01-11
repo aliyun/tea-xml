@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-csharp:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.2.x
+    - name: install altcover
+      run: cd csharp/core && dotnet tool install --global altcover.visualizer --version 8.6.14
+    - name: Install dependencies
+      run: cd csharp/core && dotnet restore
+    - name: Build
+      run: cd csharp/core && dotnet build --configuration Release --no-restore
+    - name: Test
+      run: cd csharp && dotnet test tests/ /p:AltCover=true
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: csharp
+
+  build-go:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # test against latest update of each major Java version, as well as specific updates of LTS versions:
+        go: [1.12, 1.13, 1.14, 1.15]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ matrix.go }}
+
+    - name: Build
+      run: cd golang && go build -v ./...
+
+    - name: Test
+      run: cd golang && go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: go
+
+  build-java:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # test against latest update of each major Java version, as well as specific updates of LTS versions:
+        java: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup java
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+    - name: Build with Maven
+      run: cd java && mvn test
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: java
+
+  build-php:
+    runs-on: ${{ matrix.operating-system }}
+    defaults:
+      run:
+        working-directory: php
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest]
+        php-versions: ['5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1']
+      fail-fast: false
+    name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+        extensions: mbstring, intl
+        ini-values: post_max_size=256M, max_execution_time=180
+        coverage: xdebug        
+        tools: php-cs-fixer, phpunit
+    
+    - name: Validate composer.json and composer.lock
+      run: composer validate
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Run test case
+      run: composer test
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: php
+
+  build-python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: pip install coverage pytest alibabacloud-tea
+    - name: Test with unittest
+      run:  cd python && coverage run --source="./alibabacloud_tea_xml" -m pytest tests/test_*
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: python
+
+  build-typescript:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Build
+      run: cd ts && npm install
+
+    - name: Test
+      run: cd ts && npm test
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: typescript
