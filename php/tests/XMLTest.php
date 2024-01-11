@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
  * @internal
  * @coversNothing
  */
-class RpcUtilsTest extends TestCase
+class XMLTest extends TestCase
 {
     private $xmlStr = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" .
     "<tests>\n" .
