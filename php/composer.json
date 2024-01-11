@@ -30,7 +30,7 @@
     "fixer": "php-cs-fixer fix ./",
     "test": [
       "@clearCache",
-      "phpunit --colors=always"
+      "XDEBUG_MODE=coverage phpunit --colors=always"
     ],
     "clearCache": "rm -rf cache/*"
   },
