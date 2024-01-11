@@ -1,10 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
 using AlibabaCloud.TeaXML;
-using Moq;
 using Tea;
 using tests.Models;
 using Xunit;
@@ -23,8 +18,10 @@ namespace tests
 
             ToBodyModel model = new ToBodyModel();
             ListAllMyBucketsResult result = new ListAllMyBucketsResult();
-            Buckets buckets = new Buckets();
-            buckets.bucket = new List<Bucket>();
+            Buckets buckets = new Buckets
+            {
+                bucket = new List<Bucket>()
+            };
             buckets.bucket.Add(new Bucket { CreationDate = "2015-12-17T18:12:43.000Z", ExtranetEndpoint = "oss-cn-shanghai.aliyuncs.com", IntranetEndpoint = "oss-cn-shanghai-internal.aliyuncs.com", Location = "oss-cn-shanghai", Name = "app-base-oss", StorageClass = "Standard" });
             buckets.bucket.Add(new Bucket { CreationDate = "2014-12-25T11:21:04.000Z", ExtranetEndpoint = "oss-cn-hangzhou.aliyuncs.com", IntranetEndpoint = "oss-cn-hangzhou-internal.aliyuncs.com", Location = "oss-cn-hangzhou", Name = "atestleo23", StorageClass = "IA" });
             buckets.bucket.Add(null);
@@ -33,8 +30,10 @@ namespace tests
             result.owner = owner;
             model.listAllMyBucketsResult = result;
             model.listAllMyBucketsResult.testStrList = new List<string> { "1", "2" };
-            model.listAllMyBucketsResult.owners = new List<Owner>();
-            model.listAllMyBucketsResult.owners.Add(owner);
+            model.listAllMyBucketsResult.owners = new List<Owner>
+            {
+                owner
+            };
             model.listAllMyBucketsResult.TestDouble = 1;
             model.listAllMyBucketsResult.TestFloat = 2;
             model.listAllMyBucketsResult.TestLong = 3;
@@ -48,7 +47,7 @@ namespace tests
             string xmlStr = Client.ToXML(model.ToMap());
             Assert.NotNull(xmlStr);
 
-            Dictionary<string, object> xmlBody = (Dictionary<string, object>)Client.ParseXml(xmlStr, typeof(ToBodyModel));
+            Dictionary<string, object> xmlBody = Client.ParseXml(xmlStr, typeof(ToBodyModel));
             ToBodyModel teaModel = TeaModel.ToObject<ToBodyModel>(xmlBody);
             Assert.NotNull(teaModel);
             Assert.Equal(1, teaModel.listAllMyBucketsResult.TestDouble);

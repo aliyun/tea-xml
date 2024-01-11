@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using AlibabaCloud.TeaXML.Utils;
 using Tea;
 using tests.Models;
@@ -17,8 +15,10 @@ namespace tests.Utils
         {
             model = new ToBodyModel();
             ListAllMyBucketsResult result = new ListAllMyBucketsResult();
-            Buckets buckets = new Buckets();
-            buckets.bucket = new List<Bucket>();
+            Buckets buckets = new Buckets
+            {
+                bucket = new List<Bucket>()
+            };
             buckets.bucket.Add(new Bucket { CreationDate = "2015-12-17T18:12:43.000Z", ExtranetEndpoint = "oss-cn-shanghai.aliyuncs.com", IntranetEndpoint = "oss-cn-shanghai-internal.aliyuncs.com", Location = "oss-cn-shanghai", Name = "app-base-oss", StorageClass = "Standard" });
             buckets.bucket.Add(new Bucket { CreationDate = "2014-12-25T11:21:04.000Z", ExtranetEndpoint = "oss-cn-hangzhou.aliyuncs.com", IntranetEndpoint = "oss-cn-hangzhou-internal.aliyuncs.com", Location = "oss-cn-hangzhou", Name = "atestleo23", StorageClass = "IA" });
             buckets.bucket.Add(null);
@@ -27,8 +27,10 @@ namespace tests.Utils
             result.owner = owner;
             model.listAllMyBucketsResult = result;
             model.listAllMyBucketsResult.testStrList = new List<string> { "1", "2" };
-            model.listAllMyBucketsResult.owners = new List<Owner>();
-            model.listAllMyBucketsResult.owners.Add(owner);
+            model.listAllMyBucketsResult.owners = new List<Owner>
+            {
+                owner
+            };
             model.listAllMyBucketsResult.TestDouble = 1;
             model.listAllMyBucketsResult.TestFloat = 2;
             model.listAllMyBucketsResult.TestLong = 3;

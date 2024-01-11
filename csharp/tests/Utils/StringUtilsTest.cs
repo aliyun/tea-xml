@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AlibabaCloud.TeaXML.Utils;
+﻿using AlibabaCloud.TeaXML.Utils;
 using Xunit;
 
 namespace tests.Utils
@@ -13,7 +10,6 @@ namespace tests.Utils
         {
             string str = "teste";
             Assert.Equal(2, StringUtils.SubStringCount(str, "te"));
-
             Assert.Equal(0, StringUtils.SubStringCount(str, "zz"));
         }
     }
