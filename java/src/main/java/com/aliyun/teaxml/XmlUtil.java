@@ -64,11 +64,15 @@ public class XmlUtil {
                 if (listActualTypeArgument instanceof Class) {
                     itemType = (Class<?>) listActualTypeArgument;
                 }
-
                 List target = new ArrayList();
-                for (int i = 0; i < subElements.size(); i++) {
-                    target.add(TeaModel.toModel(getValueFromXml(subElements.get(i), itemType),
-                            (TeaModel) itemType.newInstance()));
+                if (TeaModel.class.isAssignableFrom(itemType)) {
+                    for (int i = 0; i < subElements.size(); i++) {
+                        target.add(getValueFromXml(subElements.get(i), itemType));
+                    }
+                } else {
+                    for (int i = 0; i < subElements.size(); i++) {
+                        target.add(castType(itemType, subElements.get(i).getText()));
+                    }
                 }
                 nodeDict.put(realName, target);
             } else if (TeaModel.class.isAssignableFrom(subField.getType())) {

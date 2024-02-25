@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ClientTest {
@@ -54,11 +55,17 @@ public class ClientTest {
                 "      <DisplayName>test</DisplayName>\n" +
                 "    </Owner>\n" +
                 "  </Contents>\n" +
+                "  <StringList>test</StringList>\n" +
+                "  <IntList>0</IntList>\n" +
+                "  <IntList>1</IntList>\n" +
                 "</ListBucketResult>";
         Map map = Client.parseXml(xml, GetBucketResponse.class);
-        Assert.assertEquals(7, ((Map) map.get("ListBucketResult")).size());
+        Assert.assertEquals(9, ((Map) map.get("ListBucketResult")).size());
+        Assert.assertEquals("test", ((List) ((Map) map.get("ListBucketResult")).get("StringList")).get(0));
+        Assert.assertEquals(0, ((List) ((Map) map.get("ListBucketResult")).get("IntList")).get(0));
+        Assert.assertEquals(1, ((List) ((Map) map.get("ListBucketResult")).get("IntList")).get(1));
         Map map1 = Client.parseXml(xml, null);
         Assert.assertEquals("sdk-script", ((Map) map1.get("ListBucketResult")).get("Name"));
-        Assert.assertEquals(7, ((Map) map1.get("ListBucketResult")).size());
+        Assert.assertEquals(9, ((Map) map1.get("ListBucketResult")).size());
     }
 }
