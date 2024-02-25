@@ -101,6 +101,14 @@ public class GetBucketResponse extends TeaModel {
         @Validation(required = true)
         public List<GetBucketResponseListBucketResultContents> contents;
 
+        @NameInMap("StringList")
+        @Validation(required = true)
+        public List<String> stringList;
+
+        @NameInMap("IntList")
+        @Validation(required = true)
+        public List<Integer> intList;
+
     }
 
 }
