@@ -1,3 +1,5 @@
+2024-02-26 Version: 0.1.6
+1. Fix: resolve list items deserialize
 
 2021-12-16 Version: 0.1.4
 1. Fix child node to list
