@@ -155,3 +155,28 @@ jobs:
     - uses: codecov/codecov-action@v3
       with:
         flags: typescript
+
+  build-swift:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        swift-version: ["5"]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Swift ${{ matrix.swift-version }}
+      uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift-version }}
+
+    - name: Build
+      run: cd swift && swift package generate-xcodeproj --enable-code-coverage && xcodebuild clean build -project TeaXml.xcodeproj -scheme "TeaXml-Package" -sdk "macosx" -destination "platform=OS X,arch=x86_64" -configuration Debug ONLY_ACTIVE_ARCH=NO test
+
+    - name: Test
+      run: cd swift && xcodebuild test -project TeaXml.xcodeproj -scheme "TeaXml-Package" -sdk "macosx" -destination "platform=OS X,arch=x86_64" -configuration Debug ONLY_ACTIVE_ARCH=NO test
+
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: swift
