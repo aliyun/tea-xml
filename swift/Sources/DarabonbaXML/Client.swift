@@ -10,7 +10,7 @@ public typealias XMLElement = Foundation.XMLElement
 import SWXMLHash
 import Tea
 
-public class DarabonbaXML {
+public class Client {
     public static func parseXml(_ body: String?, _ response: AnyObject?) -> [String: Any] {
         guard let body = body, !body.isEmpty else {
             return [:]
@@ -19,7 +19,7 @@ public class DarabonbaXML {
         return parseXMLElement(element: xml) ?? [:]
     }
 
-    public static func parseXMLElement(element: XMLIndexer) -> [String: Any]? {
+    private static func parseXMLElement(element: XMLIndexer) -> [String: Any]? {
         var resultDict: [String: Any] = [:]
 
         for child in element.children {
@@ -34,12 +34,12 @@ public class DarabonbaXML {
         return resultDict.isEmpty ? nil : resultDict
     }
     
-    public static func toXML(_ dictionary: [String: Any]?) -> String {
-        guard let dictionary = dictionary, !dictionary.isEmpty else {
+    public static func toXML(_ body: [String: Any]?) -> String {
+        guard let body = body, !body.isEmpty else {
             return ""
         }
         
-        guard dictionary.count == 1, let rootName = dictionary.keys.first else {
+        guard body.count == 1, let rootName = body.keys.first else {
             return ""
         }
         
@@ -49,15 +49,15 @@ public class DarabonbaXML {
         let rootElement = XMLElement(name: rootName)
         xmlDoc.setRootElement(rootElement)
         
-        if let rootDictionary = dictionary[rootName] as? [String: Any] {
-            appendElements(from: rootDictionary, to: rootElement)
+        if let root = body[rootName] as? [String: Any] {
+            appendElements(from: root, to: rootElement)
         }
         
         let xmlStringWithOptions = xmlDoc.xmlString(options: [.nodePrettyPrint])
         return xmlStringWithOptions
     }
 
-    public static func appendElements(from dictionary: [String: Any], to element: XMLElement) {
+    private static func appendElements(from dictionary: [String: Any], to element: XMLElement) {
         for (key, value) in dictionary {
             if let subDictionary = value as? [String: Any] {
                 let subElement = XMLElement(name: key)

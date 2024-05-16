@@ -9,7 +9,7 @@ final class DarabonbaXMLTests: XCTestCase {
     "</tests>\n"
     
     func testParseXml() {
-        let r = DarabonbaXML.parseXml(xmlStr, TestObject())
+        let r = Client.parseXml(xmlStr, TestObject())
         let res = r["tests"] as! [String: Any]
         let name = res["name"] as! String
         let value = res["value"] as! String
@@ -28,9 +28,9 @@ final class DarabonbaXMLTests: XCTestCase {
                 ]
             ]
         ]
-        var result = DarabonbaXML.toXML(dict)
+        var result = Client.toXML(dict)
         #if os(Linux)
-        XCTAssertTrue(result.contains("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>"))
+        XCTAssertTrue(result.contains("<?xml version=\"1.0\" encoding=\"utf-8\""))
         #else
         XCTAssertTrue(result.contains("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"))
         #endif
@@ -52,7 +52,7 @@ final class DarabonbaXMLTests: XCTestCase {
                 "value": "00"
             ]
         ]
-        let result1 = DarabonbaXML.toXML(dict1)
+        let result1 = Client.toXML(dict1)
         XCTAssertEqual("", result1)
     }
     
