@@ -46,7 +46,7 @@ setup_args = {
     'keywords': ["alibabacloud", "sdk", "tea"],
     'packages': find_packages(exclude=["tests*"]),
     'platforms': 'any',
-    'install_requires': ["alibabacloud-tea>=0.0.1"],
+    'install_requires': ["alibabacloud-tea>=0.4.0"],
     'classifiers': (
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
