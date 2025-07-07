@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AlibabaCloud.TeaXML.Utils
 {
@@ -8,12 +6,18 @@ namespace AlibabaCloud.TeaXML.Utils
     {
         internal static int SubStringCount(string str, string subString)
         {
-            if (str.Contains(subString))
+            if (subString.Length < 1)
             {
-                string strReplaced = str.Replace(subString, "");
-                return (str.Length - strReplaced.Length) / subString.Length;
+                //if subString is Empty, let's throw an ArgumentException similar to `String.Replace()`.
+                throw new ArgumentException("The length of subString cannot be zero.");
             }
-            return 0;
+            int count = 0, index = str.IndexOf(subString, StringComparison.Ordinal);
+            while (index >= 0)
+            {
+                count++;
+                index = str.IndexOf(subString, index + subString.Length, StringComparison.Ordinal);
+            }
+            return count;
         }
     }
 }
