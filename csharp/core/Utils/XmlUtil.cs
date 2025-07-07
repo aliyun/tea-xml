@@ -14,11 +14,11 @@ namespace AlibabaCloud.TeaXML.Utils
     {
         internal static Dictionary<string, object> DeserializeXml(string xmlStr, Type type)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
             XmlDocument contentXmlDoc = new XmlDocument();
             contentXmlDoc.LoadXml(xmlStr);
 
             XmlNodeList nodeList = contentXmlDoc.ChildNodes;
+            Dictionary<string, object> result = new Dictionary<string, object>(nodeList.Count);
             for (int i = 0; i < nodeList.Count; i++)
             {
                 XmlNode root = nodeList.Item(i);
@@ -48,7 +48,8 @@ namespace AlibabaCloud.TeaXML.Utils
                     ElementToDict(root, result);
                 }
             }
-            if (result.ContainsKey("xml") && result["xml"].ToString().Contains("version=\"1.0\""))
+            object xmlObj;
+            if (result.TryGetValue("xml", out xmlObj) && xmlObj.ToString().Contains("version=\"1.0\""))
             {
                 result.Remove("xml");
             }
@@ -163,7 +164,7 @@ namespace AlibabaCloud.TeaXML.Utils
             XmlNodeList elements = element.ChildNodes;
             if (elements.Count == 0 || (elements.Count == 1 && !elements[0].HasChildNodes))
             {
-                string context = string.IsNullOrEmpty(element.InnerText.Trim()) ? null : element.InnerText.Trim();
+                string context = string.IsNullOrWhiteSpace(element.InnerText) ? null : element.InnerText.Trim();
                 if (nodeDict != null)
                 {
                     nodeDict.Add(element.Name, context);
@@ -173,18 +174,19 @@ namespace AlibabaCloud.TeaXML.Utils
             else
             {
                 Dictionary<string, object> subDict = new Dictionary<string, object>();
-                if (nodeDict != null) {
+                if (nodeDict != null)
+                {
                     nodeDict.Add(element.Name, subDict);
                 }
+                object temp;
                 foreach (XmlNode subNode in elements)
                 {
-                    if (subDict.ContainsKey(subNode.Name))
+                    if (subDict.TryGetValue(subNode.Name, out temp))
                     {
-                        object o = subDict[subNode.Name];
-                        Type type = o.GetType();
+                        Type type = temp.GetType();
                         if (typeof(IList).IsAssignableFrom(type))
                         {
-                            ((IList)o).Add(ElementToDict(subNode, null));
+                            ((IList)temp).Add(ElementToDict(subNode, null));
                         }
                         else if (typeof(IDictionary).IsAssignableFrom(type))
                         {
@@ -198,7 +200,7 @@ namespace AlibabaCloud.TeaXML.Utils
                         else
                         {
                             List<object> list = new List<object>();
-                            list.Add(o);
+                            list.Add(temp);
                             subDict.Remove(subNode.Name);
                             list.Add(ElementToDict(subNode, null));
                             subDict.Add(subNode.Name, list);
@@ -240,7 +242,7 @@ namespace AlibabaCloud.TeaXML.Utils
             }
 
             PropertyInfo propertyInfo = properties[0];
-            NameInMapAttribute attribute = propertyInfo.GetCustomAttribute(typeof(NameInMapAttribute)) as NameInMapAttribute;
+            NameInMapAttribute attribute = propertyInfo.GetCustomAttribute<NameInMapAttribute>();
             string realName = attribute == null ? propertyInfo.Name : attribute.Name;
             object rootObj = propertyInfo.GetValue(obj);
 
@@ -257,7 +259,7 @@ namespace AlibabaCloud.TeaXML.Utils
                 return string.Empty;
             }
 
-            string nodeName = dict.Keys.ToList()[0];
+            string nodeName = dict.Keys.First();
             XElement element = new XElement(nodeName);
             GetXmlFactory(dict[nodeName], element);
 
@@ -292,7 +294,6 @@ namespace AlibabaCloud.TeaXML.Utils
             if (typeof(TeaModel).IsAssignableFrom(type))
             {
                 GetXml((TeaModel)obj, element);
-
             }
             else if (typeof(IDictionary).IsAssignableFrom(type))
             {
@@ -309,7 +310,6 @@ namespace AlibabaCloud.TeaXML.Utils
             {
                 xParent.Add(element);
             }
-
         }
 
         private static IEnumerable<DictionaryEntry> CastDict(IDictionary dictionary)
@@ -343,6 +343,5 @@ namespace AlibabaCloud.TeaXML.Utils
                 GetXmlFactory(propertyInfo.GetValue(model), node, element);
             }
         }
-
     }
 }
