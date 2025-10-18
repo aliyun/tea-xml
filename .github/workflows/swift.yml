@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         # ubuntu swift5.6及以下版本下载会报gpg签名错误，已知bug等官方解决
-        swift: ["5.7", "5.8", "5.9", "5.10"]
+        swift: ["5.7", "5.8", "5.9", "5.10", "6.0", "6.1"]
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +33,7 @@ jobs:
     name: Swift ${{ matrix.swift }} on macos-latest
     strategy:
       matrix:
-        swift: ["5.9", "5.10"]
+        swift: ["5.9", "5.10", "6.0", "6.1"]
       fail-fast: false
     runs-on: macos-latest
     steps:

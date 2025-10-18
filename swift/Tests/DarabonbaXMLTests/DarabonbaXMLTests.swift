@@ -29,11 +29,7 @@ final class DarabonbaXMLTests: XCTestCase {
             ]
         ]
         var result = Client.toXML(dict)
-        #if os(Linux)
-        XCTAssertTrue(result.contains("<?xml version=\"1.0\" encoding=\"utf-8\""))
-        #else
         XCTAssertTrue(result.contains("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"))
-        #endif
         XCTAssertTrue(result.contains("<tests>"))
         XCTAssertTrue(result.contains("<map>"))
         XCTAssertTrue(result.contains("<value>00</value>"))
