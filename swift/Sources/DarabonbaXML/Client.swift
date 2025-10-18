@@ -1,12 +1,7 @@
-#if canImport(FoundationXML)
-import FoundationXML
-public typealias XMLDocument = FoundationXML.XMLDocument
-public typealias XMLElement = FoundationXML.XMLElement
-#else
 import Foundation
-public typealias XMLDocument = Foundation.XMLDocument
-public typealias XMLElement = Foundation.XMLElement
-#endif
+
+// 使用自定义的XML实现，避免平台兼容性问题
+// 不再依赖Foundation或FoundationXML的XML类
 import SWXMLHash
 import Tea
 
@@ -43,38 +38,48 @@ public class Client {
             return ""
         }
         
-        let xmlDoc = XMLDocument()
-        xmlDoc.version = "1.0"
-        xmlDoc.characterEncoding = "UTF-8"
-        let rootElement = XMLElement(name: rootName)
-        xmlDoc.setRootElement(rootElement)
-        
+        // 使用自定义的XML生成方法，避免平台兼容性问题
         if let root = body[rootName] as? [String: Any] {
-            appendElements(from: root, to: rootElement)
+            return generateXMLString(rootName: rootName, dictionary: root)
         }
-        
-        let xmlStringWithOptions = xmlDoc.xmlString(options: [.nodePrettyPrint])
-        return xmlStringWithOptions
+        return "<\(rootName)></\(rootName)>"
     }
 
-    private static func appendElements(from dictionary: [String: Any], to element: XMLElement) {
+    private static func generateXMLString(rootName: String, dictionary: [String: Any]) -> String {
+        var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        xml += "<\(rootName)>\n"
+        xml += generateXMLContent(from: dictionary, indent: "  ")
+        xml += "</\(rootName)>"
+        return xml
+    }
+    
+    private static func generateXMLContent(from dictionary: [String: Any], indent: String) -> String {
+        var content = ""
         for (key, value) in dictionary {
             if let subDictionary = value as? [String: Any] {
-                let subElement = XMLElement(name: key)
-                appendElements(from: subDictionary, to: subElement)
-                element.addChild(subElement)
+                content += "\(indent)<\(key)>\n"
+                content += generateXMLContent(from: subDictionary, indent: indent + "  ")
+                content += "\(indent)</\(key)>\n"
             } else if let array = value as? [[String: Any]] {
                 for subDictionary in array {
-                    let subElement = XMLElement(name: key)
-                    appendElements(from: subDictionary, to: subElement)
-                    element.addChild(subElement)
+                    content += "\(indent)<\(key)>\n"
+                    content += generateXMLContent(from: subDictionary, indent: indent + "  ")
+                    content += "\(indent)</\(key)>\n"
                 }
             } else {
-                let subElement = XMLElement(name: key)
-                let textNode = XMLNode.text(withStringValue: "\(value)") as! XMLNode
-                subElement.addChild(textNode)
-                element.addChild(subElement)
+                let escapedValue = escapeXMLString("\(value)")
+                content += "\(indent)<\(key)>\(escapedValue)</\(key)>\n"
             }
         }
+        return content
+    }
+    
+    private static func escapeXMLString(_ string: String) -> String {
+        return string
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+            .replacingOccurrences(of: "'", with: "&apos;")
     }
 }
