@@ -1,3 +1,7 @@
+2026-09-18 Version: 0.1.7
+1. Upgrade optional tea dependency to 1.4.2 (okhttp 4.12.0) to clear SCA noise from tea 1.2.8 / okhttp 3.12.13.
+2. Migrate publish plugin to Maven Central Portal (central-publishing-maven-plugin).
+
 2024-02-26 Version: 0.1.6
 1. Fix: resolve list items deserialize
 
