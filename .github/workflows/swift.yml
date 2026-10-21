@@ -10,15 +10,17 @@ defaults:
     shell: bash
     working-directory: swift
 
+permissions:
+  contents: read
+
 jobs:
   build-ubuntu-latest:
-    name: Swift ${{ matrix.swift }} on ubuntu-latest
+    name: Swift ${{ matrix.swift }} on ubuntu-22.04
     strategy:
       matrix:
-        # ubuntu swift5.6及以下版本下载会报gpg签名错误，已知bug等官方解决
         swift: ["5.7", "5.8", "5.9", "5.10", "6.0", "6.1"]
       fail-fast: false
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: swift-actions/setup-swift@v2
       with:
@@ -29,38 +31,72 @@ jobs:
     - name: Run tests
       run: swift test -v
 
-  build-macos-latest:
-    name: Swift ${{ matrix.swift }} on macos-latest
-    strategy:
-      matrix:
-        swift: ["5.9", "5.10", "6.0", "6.1"]
-      fail-fast: false
-    runs-on: macos-latest
+  coverage:
+    name: Swift source coverage
+    runs-on: macos-15
     steps:
-    - uses: swift-actions/setup-swift@v2
-      with:
-        swift-version: ${{ matrix.swift }}
     - uses: actions/checkout@v4
-    - name: Verify Xcode Version
-      run: xcodebuild -version
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+    - name: Run tests with coverage
+      run: swift test --enable-code-coverage
+    - name: Export source coverage
+      run: |
+        xcrun llvm-cov export \
+          .build/debug/DarabonbaXMLPackageTests.xctest/Contents/MacOS/DarabonbaXMLPackageTests \
+          -instr-profile=.build/debug/codecov/default.profdata \
+          -format=lcov Sources/DarabonbaXML/*.swift > .build/coverage.lcov
+    - name: Require 90 percent source coverage
+      run: |
+        awk -F: '
+          /^LF:/ { total += $2 }
+          /^LH:/ { covered += $2 }
+          END {
+            if (total == 0) { print "No production coverage found"; exit 1 }
+            printf "Production line coverage: %.2f%% (%d/%d)\n", 100 * covered / total, covered, total
+            exit (covered * 100 < total * 90)
+          }
+        ' .build/coverage.lcov
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: swift
+        files: swift/.build/coverage.lcov
 
-  build-macos-11:
-    name: Swift ${{ matrix.swift }} on macos-11
+  build-macos:
+    name: Swift ${{ matrix.swift }} on macos-15 (Xcode ${{ matrix.xcode }})
     strategy:
       matrix:
-        swift: ["5.6", "5.7", "5.8"]
+        include:
+          - swift: "6.0"
+            xcode: "16.2"
+          - swift: "6.1"
+            xcode: "16.4"
       fail-fast: false
-    runs-on: macos-11
+    runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     steps:
-    - uses: swift-actions/setup-swift@v2
-      with:
-        swift-version: ${{ matrix.swift }}
     - uses: actions/checkout@v4
+    - name: Verify compiler and SDK
+      run: |
+        xcodebuild -version
+        xcrun swift --version | grep -F "Swift version ${{ matrix.swift }}."
+        xcrun --sdk macosx --show-sdk-path
     - name: Build
-      run: swift build -v
+      run: xcrun swift build -v
     - name: Run tests
-      run: swift test -v
+      run: xcrun swift test -v
+
+  build-swift-5-6:
+    name: Swift 5.6 on Linux
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build and test with Swift 5.6
+      run: |
+        docker run --rm -v "${{ github.workspace }}/swift:/work" -w /work \
+          swift:5.6.3-focal bash -ec '
+            swift --version
+            swift build -v
+            swift test -v
+          '

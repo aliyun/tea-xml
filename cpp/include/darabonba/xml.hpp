@@ -6,6 +6,7 @@
 #include <boost/any.hpp>
 #include <iostream>
 #include <map>
+#include <memory>
 
 using namespace std;
 

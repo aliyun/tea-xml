@@ -11,11 +11,11 @@ cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 
 # Clone and build base directory
 set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-find_package(googletest ${googletest_MINIMUM_REQUIRED} QUIET COMPONENTS ${googletest_COMPONENTS_REQUIRED})
+find_package(GTest QUIET)
 
-if(nlohmann_json_FOUND)
-  message(STATUS "Found googletest version ${googletest_MAJOR_VERSION}.${googletest_MINOR_VERSION}.${googletest_SUBMINOR_VERSION}")
-  add_library(googletest_external INTERFACE)
+if(GTest_FOUND)
+  add_library(gtest_main INTERFACE)
+  target_link_libraries(gtest_main INTERFACE GTest::gtest_main)
 else()
   include(FetchContent)
   FetchContent_Declare(
