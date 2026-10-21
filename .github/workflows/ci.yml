@@ -25,7 +25,7 @@ jobs:
             test "$(dotnet --version)" = "2.2.402"
             dotnet restore core/TeaXML.csproj
             dotnet build core/TeaXML.csproj --configuration Release --no-restore
-            dotnet test tests/tests.csproj --collect:"XPlat Code Coverage" --results-directory TestResults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[AlibabaCloud.TeaXML]*"
+            dotnet test tests/tests.csproj --collect:"XPlat Code Coverage" --results-directory "$PWD/TestResults" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[AlibabaCloud.TeaXML]*"
           '
     - name: Require 90 percent source coverage
       run: |
