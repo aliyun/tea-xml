@@ -70,6 +70,7 @@ jobs:
       fail-fast: false
     env:
       GOFLAGS: ${{ (matrix.go == '1.12.x' || matrix.go == '1.13.x') && '-mod=' || '-mod=mod' }}
+      GOPROXY: https://proxy.golang.org
 
     steps:
     - uses: actions/checkout@v3

@@ -18,7 +18,6 @@ jobs:
     name: Swift ${{ matrix.swift }} on ubuntu-22.04
     strategy:
       matrix:
-        # ubuntu swift5.6及以下版本下载会报gpg签名错误，已知bug等官方解决
         swift: ["5.7", "5.8", "5.9", "5.10", "6.0", "6.1"]
       fail-fast: false
     runs-on: ubuntu-22.04
@@ -63,38 +62,41 @@ jobs:
         flags: swift
         files: swift/.build/coverage.lcov
 
-  build-macos-latest:
-    name: Swift ${{ matrix.swift }} on macos-latest
+  build-macos:
+    name: Swift ${{ matrix.swift }} on macos-15 (Xcode ${{ matrix.xcode }})
     strategy:
       matrix:
-        swift: ["5.9", "5.10", "6.0", "6.1"]
+        include:
+          - swift: "6.0"
+            xcode: "16.2"
+          - swift: "6.1"
+            xcode: "16.4"
       fail-fast: false
-    runs-on: macos-latest
+    runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     steps:
-    - uses: swift-actions/setup-swift@v2
-      with:
-        swift-version: ${{ matrix.swift }}
     - uses: actions/checkout@v4
-    - name: Verify Xcode Version
-      run: xcodebuild -version
+    - name: Verify compiler and SDK
+      run: |
+        xcodebuild -version
+        xcrun swift --version | grep -F "Swift version ${{ matrix.swift }}."
+        xcrun --sdk macosx --show-sdk-path
     - name: Build
-      run: swift build -v
+      run: xcrun swift build -v
     - name: Run tests
-      run: swift test -v
+      run: xcrun swift test -v
 
-  build-macos-11:
-    name: Swift ${{ matrix.swift }} on macos-11
-    strategy:
-      matrix:
-        swift: ["5.6", "5.7", "5.8"]
-      fail-fast: false
-    runs-on: macos-11
+  build-swift-5-6:
+    name: Swift 5.6 on Linux
+    runs-on: ubuntu-22.04
     steps:
-    - uses: swift-actions/setup-swift@v2
-      with:
-        swift-version: ${{ matrix.swift }}
     - uses: actions/checkout@v4
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
+    - name: Build and test with Swift 5.6
+      run: |
+        docker run --rm -v "${{ github.workspace }}/swift:/work" -w /work \
+          swift:5.6.3-focal bash -ec '
+            swift --version
+            swift build -v
+            swift test -v
+          '
