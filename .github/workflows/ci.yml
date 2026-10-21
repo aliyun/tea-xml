@@ -68,6 +68,8 @@ jobs:
       matrix:
         go: ["1.12.x", "1.13.x", "1.14.x", "1.15.x", "1.18.x", "stable"]
       fail-fast: false
+    env:
+      GOFLAGS: ${{ (matrix.go == '1.12.x' || matrix.go == '1.13.x') && '-mod=' || '-mod=mod' }}
 
     steps:
     - uses: actions/checkout@v3
@@ -78,10 +80,10 @@ jobs:
         cache: false
 
     - name: Build
-      run: cd golang && go build -mod=mod -v ./...
+      run: cd golang && go build -v ./...
 
     - name: Test
-      run: cd golang && go test -mod=mod -race -coverprofile=coverage.txt -covermode=atomic ./...
+      run: cd golang && go test -race -coverprofile=coverage.txt -covermode=atomic ./...
     - name: Require 90 percent statement coverage
       run: |
         awk 'NR > 1 { total += $2; if ($3 > 0) covered += $2 }
@@ -240,6 +242,7 @@ jobs:
     - name: Build
       run: |
         cd ts
+        npm install --package-lock=false
         npm install --no-save --package-lock=false @types/node@14.18.63
         npm run build
 
