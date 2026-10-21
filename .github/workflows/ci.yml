@@ -48,11 +48,25 @@ jobs:
         flags: csharp
         files: csharp/TestResults/*/coverage.cobertura.xml
 
+  build-csharp-legacy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build and test with .NET Core 2.2
+      run: |
+        docker run --rm -v "${{ github.workspace }}:${{ github.workspace }}" \
+          -w "${{ github.workspace }}/csharp" mcr.microsoft.com/dotnet/core/sdk:2.2 bash -ec '
+            dotnet --info
+            dotnet restore core/TeaXML.csproj
+            dotnet build core/TeaXML.csproj --configuration Release --no-restore
+            dotnet test tests/tests.csproj
+          '
+
   build-go:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: ["1.18.x", "stable"]
+        go: ["1.12.x", "1.13.x", "1.14.x", "1.15.x", "1.18.x", "stable"]
       fail-fast: false
 
     steps:
@@ -120,7 +134,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ['8.1', '8.3']
+        php-versions: ['5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.3']
       fail-fast: false
     name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
 
@@ -135,7 +149,7 @@ jobs:
         extensions: mbstring, intl
         ini-values: post_max_size=256M, max_execution_time=180
         coverage: xdebug
-        tools: php-cs-fixer, phpunit
+        tools: php-cs-fixer, phpunit, composer:${{ (matrix.php-versions == '5.6' || matrix.php-versions == '7.0' || matrix.php-versions == '7.1') && '2.2' || '2' }}
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -143,9 +157,15 @@ jobs:
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress --no-suggest
 
+    - name: Run compatibility tests
+      if: matrix.php-versions != '8.1' && matrix.php-versions != '8.3'
+      run: vendor/bin/phpunit --no-configuration --bootstrap tests/bootstrap.php tests
+
     - name: Run test case
+      if: matrix.php-versions == '8.1' || matrix.php-versions == '8.3'
       run: composer test
     - name: Require 90 percent source coverage
+      if: matrix.php-versions == '8.1' || matrix.php-versions == '8.3'
       run: |
         php -r '
           $metrics = simplexml_load_file("cache/coverage.clover")->project->metrics;
@@ -156,6 +176,7 @@ jobs:
           exit($covered * 100 < $total * 90 ? 1 : 0);
         '
     - uses: codecov/codecov-action@v3
+      if: matrix.php-versions == '8.1' || matrix.php-versions == '8.3'
       with:
         flags: php
 
@@ -205,7 +226,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 22.x]
+        node-version: [12.x, 14.x, 16.x, 22.x]
       fail-fast: false
 
     steps:
