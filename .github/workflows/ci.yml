@@ -26,11 +26,27 @@ jobs:
     - name: Build
       run: cd csharp/core && dotnet build --configuration Release --no-restore
     - name: Test
-      run: cd csharp && dotnet test tests/tests.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=../TestResults/
+      env:
+        DOTNET_ROLL_FORWARD: Major
+      run: cd csharp && dotnet test tests/tests.csproj --collect:"XPlat Code Coverage" --results-directory TestResults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include='[AlibabaCloud.TeaXML]*'
+    - name: Require 90 percent source coverage
+      run: |
+        awk -F'"' '/<coverage / {
+            for (i = 2; i <= NF; i += 2) {
+              if ($(i - 1) ~ /lines-covered=$/) covered += $i
+              if ($(i - 1) ~ /lines-valid=$/) total += $i
+            }
+          }
+          END {
+            if (total == 0) { print "No production coverage found"; exit 1 }
+            printf "Production line coverage: %.2f%% (%d/%d)\n", 100 * covered / total, covered, total
+            exit (covered * 100 < total * 90)
+          }
+        ' csharp/TestResults/*/coverage.cobertura.xml
     - uses: codecov/codecov-action@v3
       with:
         flags: csharp
-        files: csharp/TestResults/coverage.cobertura.xml
+        files: csharp/TestResults/*/coverage.cobertura.xml
 
   build-go:
     runs-on: ubuntu-latest
@@ -48,10 +64,10 @@ jobs:
         cache: false
 
     - name: Build
-      run: cd golang && go build -v ./...
+      run: cd golang && go build -mod=mod -v ./...
 
     - name: Test
-      run: cd golang && go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      run: cd golang && go test -mod=mod -race -coverprofile=coverage.txt -covermode=atomic ./...
     - name: Require 90 percent statement coverage
       run: |
         awk 'NR > 1 { total += $2; if ($3 > 0) covered += $2 }
@@ -119,7 +135,7 @@ jobs:
         extensions: mbstring, intl
         ini-values: post_max_size=256M, max_execution_time=180
         coverage: xdebug
-        tools: php-cs-fixer, phpunit:10.5
+        tools: php-cs-fixer, phpunit
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -203,11 +219,11 @@ jobs:
     - name: Build
       run: |
         cd ts
-        npm install
+        npm install --no-save --package-lock=false @types/node@14.18.63
         npm run build
 
     - name: Test
-      run: cd ts && npm run test-cov
+      run: cd ts && ./node_modules/.bin/nyc -e .ts -r=text -r=lcov --all --include="src/**/*.ts" --check-coverage --lines=90 npm test
     - uses: codecov/codecov-action@v3
       with:
         flags: typescript
