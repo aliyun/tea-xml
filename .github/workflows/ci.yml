@@ -17,18 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: Install dependencies
-      run: cd csharp/core && dotnet restore
-    - name: Build
-      run: cd csharp/core && dotnet build --configuration Release --no-restore
-    - name: Test
-      env:
-        DOTNET_ROLL_FORWARD: Major
-      run: cd csharp && dotnet test tests/tests.csproj --collect:"XPlat Code Coverage" --results-directory TestResults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include='[AlibabaCloud.TeaXML]*'
+    - name: Build and test with .NET Core 2.2
+      run: |
+        docker run --rm -v "${{ github.workspace }}:${{ github.workspace }}" \
+          -w "${{ github.workspace }}/csharp" mcr.microsoft.com/dotnet/core/sdk:2.2.402 bash -ec '
+            dotnet --info
+            test "$(dotnet --version)" = "2.2.402"
+            dotnet restore core/TeaXML.csproj
+            dotnet build core/TeaXML.csproj --configuration Release --no-restore
+            dotnet test tests/tests.csproj --collect:"XPlat Code Coverage" --results-directory TestResults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[AlibabaCloud.TeaXML]*"
+          '
     - name: Require 90 percent source coverage
       run: |
         awk -F'"' '/<coverage / {
@@ -47,20 +45,6 @@ jobs:
       with:
         flags: csharp
         files: csharp/TestResults/*/coverage.cobertura.xml
-
-  build-csharp-legacy:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Build and test with .NET Core 2.2
-      run: |
-        docker run --rm -v "${{ github.workspace }}:${{ github.workspace }}" \
-          -w "${{ github.workspace }}/csharp" mcr.microsoft.com/dotnet/core/sdk:2.2 bash -ec '
-            dotnet --info
-            dotnet restore core/TeaXML.csproj
-            dotnet build core/TeaXML.csproj --configuration Release --no-restore
-            dotnet test tests/tests.csproj
-          '
 
   build-go:
     runs-on: ubuntu-latest
