@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -122,4 +123,51 @@ func Test_XmlUnmarshal(t *testing.T) {
 
 	byt, _ := json.Marshal(out)
 	utils.AssertEqual(t, `"oss-cn-hangzhou"`, string(byt))
+}
+
+func Test_ParseXmlInvalidAndTypedValues(t *testing.T) {
+	type response struct {
+		Ignored string
+		Other   string `xml:"Other"`
+		Count   int    `xml:"Count,omitempty"`
+	}
+
+	for _, body := range []string{"", "<root>", "<root></wrong>"} {
+		if got := ParseXml(tea.String(body), nil); got != nil {
+			t.Fatalf("ParseXml(%q, nil) = %#v, want nil", body, got)
+		}
+	}
+	if got := ParseXml(tea.String("<Count>invalid</Count>"), new(response)); len(got) != 0 {
+		t.Fatalf("invalid integer should return an empty map, got %#v", got)
+	}
+	got := ParseXml(tea.String("<!-- comment --><Count>42</Count>"), new(response))
+	if count, ok := got["Count"].(*int); !ok || *count != 42 {
+		t.Fatalf("typed Count = %#v, want pointer to 42", got["Count"])
+	}
+	if got := ParseXml(tea.String("<Unknown>value</Unknown>"), new(response)); !reflect.DeepEqual(got, map[string]interface{}{"Unknown": nil}) {
+		t.Fatalf("unmatched root = %#v", got)
+	}
+}
+
+func Test_ToXMLRepeatedElementsAndNilValues(t *testing.T) {
+	got := tea.StringValue(ToXML(map[string]interface{}{
+		"root": map[string]interface{}{
+			"item": []interface{}{
+				map[string]interface{}{"name": "first"},
+				"second",
+				3,
+				nil,
+			},
+			"ignored": nil,
+		},
+	}))
+	want := "<root><item><name>first</name></item><item>second</item><item>3</item></root>"
+	if got != want {
+		t.Fatalf("ToXML = %q, want %q", got, want)
+	}
+	for _, body := range []map[string]interface{}{nil, {}, {"item": []interface{}{}}} {
+		if got := tea.StringValue(ToXML(body)); got != "" {
+			t.Fatalf("empty input should produce no elements, got %q", got)
+		}
+	}
 }

@@ -14,42 +14,50 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 2.2.x
-    - name: install altcover
-      run: cd csharp/core && dotnet tool install --global altcover.visualizer --version 8.6.14
+        dotnet-version: 8.0.x
     - name: Install dependencies
       run: cd csharp/core && dotnet restore
     - name: Build
       run: cd csharp/core && dotnet build --configuration Release --no-restore
     - name: Test
-      run: cd csharp && dotnet test tests/ /p:AltCover=true
+      run: cd csharp && dotnet test tests/tests.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=../TestResults/
     - uses: codecov/codecov-action@v3
       with:
         flags: csharp
+        files: csharp/TestResults/coverage.cobertura.xml
 
   build-go:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # test against latest update of each major Java version, as well as specific updates of LTS versions:
-        go: [1.12, 1.13, 1.14, 1.15]
+        go: ["1.18.x", "stable"]
       fail-fast: false
 
     steps:
     - uses: actions/checkout@v3
     - name: Setup Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go }}
+        cache: false
 
     - name: Build
       run: cd golang && go build -v ./...
 
     - name: Test
       run: cd golang && go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+    - name: Require 90 percent statement coverage
+      run: |
+        awk 'NR > 1 { total += $2; if ($3 > 0) covered += $2 }
+          END {
+            if (total == 0) { print "No production coverage found"; exit 1 }
+            printf "Production statement coverage: %.2f%% (%d/%d)\n", 100 * covered / total, covered, total
+            exit (covered * 100 < total * 90)
+          }
+        ' golang/coverage.txt
     - uses: codecov/codecov-action@v3
       with:
         flags: go
@@ -65,11 +73,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Setup java
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v4
       with:
+        distribution: temurin
         java-version: ${{ matrix.java }}
     - name: Build with Maven
       run: cd java && mvn test
+    - name: Verify Java source coverage
+      run: |
+        test -s java/target/coverage.exec
+        awk -F, 'NR > 1 { total += $8 + $9; covered += $9 }
+          END {
+            if (total == 0) { print "No production coverage found"; exit 1 }
+            printf "Production line coverage: %.2f%% (%d/%d)\n", 100 * covered / total, covered, total
+            exit (covered * 100 < total * 90)
+          }
+        ' java/target/site/jacoco/jacoco.csv
     - uses: codecov/codecov-action@v3
       with:
         flags: java
@@ -82,7 +101,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ['5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1']
+        php-versions: ['8.1', '8.3']
       fail-fast: false
     name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
 
@@ -97,7 +116,7 @@ jobs:
         extensions: mbstring, intl
         ini-values: post_max_size=256M, max_execution_time=180
         coverage: xdebug
-        tools: php-cs-fixer, phpunit
+        tools: php-cs-fixer, phpunit:10.5
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -107,6 +126,16 @@ jobs:
 
     - name: Run test case
       run: composer test
+    - name: Require 90 percent source coverage
+      run: |
+        php -r '
+          $metrics = simplexml_load_file("cache/coverage.clover")->project->metrics;
+          $total = (int) $metrics["statements"];
+          $covered = (int) $metrics["coveredstatements"];
+          if ($total === 0) { fwrite(STDERR, "No production coverage found\n"); exit(1); }
+          printf("Production line coverage: %.2f%% (%d/%d)\n", 100 * $covered / $total, $covered, $total);
+          exit($covered * 100 < $total * 90 ? 1 : 0);
+        '
     - uses: codecov/codecov-action@v3
       with:
         flags: php
@@ -127,16 +156,37 @@ jobs:
     - name: Install dependencies
       run: pip install coverage pytest alibabacloud-tea
     - name: Test with unittest
-      run:  cd python && coverage run --source="./alibabacloud_tea_xml" -m pytest tests/test_*
+      run: |
+        cd python
+        coverage run --source=alibabacloud_tea_xml -m pytest tests/
+        coverage report --fail-under=90
+        coverage xml
     - uses: codecov/codecov-action@v3
       with:
         flags: python
+
+  build-python2:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run Python 2 tests with coverage
+      run: |
+        docker run --rm -v "${{ github.workspace }}/python2:/work" -w /work python:2.7.18-slim sh -ec '
+          pip install coverage==5.5 alibabacloud-tea-py2
+          coverage run --branch --source=alibabacloud_tea_xml -m unittest discover -s tests -v
+          coverage report --fail-under=90
+          coverage xml
+        '
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: python2
+        files: python2/coverage.xml
 
   build-typescript:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [14.x, 16.x, 22.x]
       fail-fast: false
 
     steps:
@@ -148,10 +198,33 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Build
-      run: cd ts && npm install
+      run: |
+        cd ts
+        npm install
+        npm run build
 
     - name: Test
-      run: cd ts && npm test
+      run: cd ts && npm run test-cov
     - uses: codecov/codecov-action@v3
       with:
         flags: typescript
+        files: ts/coverage/lcov.info
+
+  build-cpp:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install native test dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake gcovr pkg-config libssl-dev \
+          libcurl4-openssl-dev uuid-dev libcpprest-dev libgtest-dev \
+          libboost-dev libboost-random-dev libboost-system-dev libboost-thread-dev \
+          libboost-filesystem-dev libboost-chrono-dev libboost-atomic-dev \
+          libboost-date-time-dev libboost-regex-dev
+    - name: Run tests with coverage
+      run: bash cpp/scripts/codecov.sh
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: cpp
+        files: cpp/cmake_build/coverage.xml

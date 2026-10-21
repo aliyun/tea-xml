@@ -29,6 +29,37 @@ jobs:
     - name: Run tests
       run: swift test -v
 
+  coverage:
+    name: Swift source coverage
+    runs-on: macos-15
+    steps:
+    - uses: actions/checkout@v4
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+    - name: Run tests with coverage
+      run: swift test --enable-code-coverage
+    - name: Export source coverage
+      run: |
+        xcrun llvm-cov export \
+          .build/debug/DarabonbaXMLPackageTests.xctest/Contents/MacOS/DarabonbaXMLPackageTests \
+          -instr-profile=.build/debug/codecov/default.profdata \
+          -format=lcov Sources/DarabonbaXML/*.swift > .build/coverage.lcov
+    - name: Require 90 percent source coverage
+      run: |
+        awk -F: '
+          /^LF:/ { total += $2 }
+          /^LH:/ { covered += $2 }
+          END {
+            if (total == 0) { print "No production coverage found"; exit 1 }
+            printf "Production line coverage: %.2f%% (%d/%d)\n", 100 * covered / total, covered, total
+            exit (covered * 100 < total * 90)
+          }
+        ' .build/coverage.lcov
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: swift
+        files: swift/.build/coverage.lcov
+
   build-macos-latest:
     name: Swift ${{ matrix.swift }} on macos-latest
     strategy:

@@ -44,12 +44,6 @@ set_target_properties(${PROJECT_NAME}
 if (ENABLE_UNIT_TESTS)
     OPTION(ENABLE_COVERAGE "Use gcov" OFF)
     message(STATUS "Enable coverage: ${ENABLE_COVERAGE}")
-    if (ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        set(CMAKE_BUILD_TYPE "Coverage")
-        set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-        include(CodeCoverage)
-        setup_target_for_coverage(${PROJECT_NAME}_coverage ${PROJECT_NAME}_test coverage)
-    endif ()
     include(CTest)
     enable_testing()
     add_executable(tests_darabonba_xml
@@ -63,16 +57,39 @@ find_library(CPPREST_LIB cpprest)
 target_link_libraries(${PROJECT_NAME} PRIVATE crypto darabonba_core ${Boost_LIBRARIES} ${CPPREST_LIB})
 
 if (ENABLE_UNIT_TESTS)
-    target_include_directories(tests_darabonba_xml
+    target_include_directories(tests_darabonba_xml BEFORE
             PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/include)
     target_link_libraries(tests_darabonba_xml
             PRIVATE
             ${PROJECT_NAME}
             gtest_main
-            gmock_main crypto darabonba_core ${Boost_LIBRARIES} ${CPPREST_LIB})
+            crypto darabonba_core ${Boost_LIBRARIES} ${CPPREST_LIB})
     add_test(NAME google_test
             COMMAND $<TARGET_FILE:tests_darabonba_xml>)
+
+    if (ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        find_program(GCOVR_PATH gcovr)
+        if (NOT GCOVR_PATH)
+            message(FATAL_ERROR "gcovr is required for coverage builds")
+        endif ()
+        foreach(target ${PROJECT_NAME} tests_darabonba_xml)
+            target_compile_options(${target} PRIVATE --coverage -O0 -g)
+            target_link_libraries(${target} PRIVATE --coverage)
+        endforeach()
+        add_custom_target(${PROJECT_NAME}_coverage
+            COMMAND ${CMAKE_COMMAND} -DCOVERAGE_BUILD_DIR=${CMAKE_BINARY_DIR}
+                -P ${PROJECT_SOURCE_DIR}/cmake/ResetCoverage.cmake
+            COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+            COMMAND ${GCOVR_PATH} --root ${PROJECT_SOURCE_DIR}
+                --filter ${PROJECT_SOURCE_DIR}/src/
+                --filter ${PROJECT_SOURCE_DIR}/include/
+                --print-summary --xml-pretty --output coverage.xml
+                --fail-under-line 90 ${CMAKE_BINARY_DIR}
+            DEPENDS tests_darabonba_xml
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            VERBATIM)
+    endif ()
 endif ()
 
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Install set up >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #

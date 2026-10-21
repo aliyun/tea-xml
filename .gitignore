@@ -12,6 +12,8 @@ coverage.html
 csharp/**/bin/
 csharp/**/obj/
 csharp/**/.vs/
+csharp/TestResults/
+cpp/cmake_build/
 .idea
 target/
 *.iml

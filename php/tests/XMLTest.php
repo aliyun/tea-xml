@@ -7,7 +7,6 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
- * @coversNothing
  */
 class XMLTest extends TestCase
 {
@@ -49,6 +48,39 @@ class XMLTest extends TestCase
         $obj->name  = 'test';
         $obj->value = 1;
         $this->assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tests><name>test</name><value>1</value></tests>", XML::toXML($obj));
+    }
+
+    public function testParseXmlCreatesResponseFromClassNameAndFiltersProperties()
+    {
+        $xml = '<tests><name>test</name><value>2</value><unknown>ignored</unknown></tests>';
+
+        $this->assertEquals(
+            ['name' => 'test', 'value' => '2'],
+            XML::parseXml($xml, __NAMESPACE__ . '\\tests')
+        );
+    }
+
+    public function testParseXmlPreservesAttributesRepeatedElementsAndCdata()
+    {
+        $xml = '<tests id="42"><item>one</item><item>two</item><text><![CDATA[<hello>&world]]></text><empty/></tests>';
+
+        $this->assertEquals(
+            [
+                '@attributes' => ['id' => '42'],
+                'item' => ['one', 'two'],
+                'text' => '<hello>&world',
+                'empty' => [],
+            ],
+            XML::parseXml($xml, null)
+        );
+    }
+
+    public function testToXmlSortsKeysAndEscapesText()
+    {
+        $this->assertEquals(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tests><a>&lt;tag&gt;&amp;value</a><z>last</z></tests>",
+            XML::toXML(['tests' => ['z' => 'last', 'a' => '<tag>&value']])
+        );
     }
 }
 
