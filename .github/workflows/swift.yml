@@ -10,6 +10,9 @@ defaults:
     shell: bash
     working-directory: swift
 
+permissions:
+  contents: read
+
 jobs:
   build-ubuntu-latest:
     name: Swift ${{ matrix.swift }} on ubuntu-latest
