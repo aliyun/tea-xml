@@ -45,6 +45,8 @@ jobs:
       with:
         flags: csharp
         files: csharp/TestResults/*/coverage.cobertura.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-go:
     runs-on: ubuntu-latest
@@ -81,6 +83,8 @@ jobs:
     - uses: codecov/codecov-action@v3
       with:
         flags: go
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-java:
     runs-on: ubuntu-latest
@@ -112,6 +116,8 @@ jobs:
     - uses: codecov/codecov-action@v3
       with:
         flags: java
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-php:
     runs-on: ${{ matrix.operating-system }}
@@ -166,6 +172,8 @@ jobs:
       if: matrix.php-versions == '8.1' || matrix.php-versions == '8.3'
       with:
         flags: php
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-python:
     runs-on: ubuntu-latest
@@ -191,6 +199,8 @@ jobs:
     - uses: codecov/codecov-action@v3
       with:
         flags: python
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-python2:
     runs-on: ubuntu-latest
@@ -208,6 +218,8 @@ jobs:
       with:
         flags: python2
         files: python2/coverage.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-typescript:
     runs-on: ubuntu-latest
@@ -237,6 +249,8 @@ jobs:
       with:
         flags: typescript
         files: ts/coverage/lcov.info
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-cpp:
     runs-on: ubuntu-22.04
@@ -256,3 +270,5 @@ jobs:
       with:
         flags: cpp
         files: cpp/cmake_build/coverage.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
