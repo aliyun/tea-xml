@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
+from xml.etree import ElementTree
 
 from alibabacloud_tea_xml.client import Client
 from Tea.model import TeaModel
@@ -108,4 +109,33 @@ class TestClient(unittest.TestCase):
             Client.to_xml(dic)
         except Exception as e:
             self.assertEqual('Missing root tag', str(e))
+
+    def test_parse_xml_attributes_text_and_repeated_children(self):
+        body = '<root version="1"> message <item id="a"> first </item><item id="b"/><empty/></root>'
+        self.assertEqual({
+            'root': {
+                '@version': '1',
+                '#text': 'message',
+                'item': [{'@id': 'a', '#text': 'first'}, {'@id': 'b'}],
+                'empty': None,
+            }
+        }, Client.parse_xml(body))
+        self.assertEqual({'root': {'item': 'value'}}, Client.parse_xml('<root> \n<item> value </item></root>'))
+        self.assertEqual({'root': ''}, Client.parse_xml('<root> \n </root>'))
+
+    def test_parse_xml_rejects_malformed_documents(self):
+        for body in ('', '<root>', '<root></other>'):
+            with self.assertRaises(ElementTree.ParseError):
+                Client.parse_xml(body)
+
+    def test_to_xml_dictionary_round_trip(self):
+        body = {'root': {'item': ('first', 'second'), 'empty': [], 'escaped': '<&>', 'number': 0}}
+        self.assertEqual({
+            'root': {'item': ['first', 'second'], 'empty': None, 'escaped': '<&>', 'number': '0'}
+        }, Client.parse_xml(Client.to_xml(body)))
+        self.assertEqual('', Client.to_xml('unsupported'))
+
+    def test_to_xml_requires_a_parent_for_root_sequences(self):
+        with self.assertRaisesRegexp(RuntimeError, 'Missing root tag'):
+            Client.to_xml({'root': ['first', 'second']})
 

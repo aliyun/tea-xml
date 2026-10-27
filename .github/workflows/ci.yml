@@ -9,50 +9,82 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   build-csharp:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 2.2.x
-    - name: install altcover
-      run: cd csharp/core && dotnet tool install --global altcover.visualizer --version 8.6.14
-    - name: Install dependencies
-      run: cd csharp/core && dotnet restore
-    - name: Build
-      run: cd csharp/core && dotnet build --configuration Release --no-restore
-    - name: Test
-      run: cd csharp && dotnet test tests/ /p:AltCover=true
+    - name: Build and test with .NET Core 2.2
+      run: |
+        docker run --rm -v "${{ github.workspace }}:${{ github.workspace }}" \
+          -w "${{ github.workspace }}/csharp" mcr.microsoft.com/dotnet/core/sdk:2.2.402 bash -ec '
+            dotnet --info
+            test "$(dotnet --version)" = "2.2.402"
+            dotnet restore core/TeaXML.csproj
+            dotnet build core/TeaXML.csproj --configuration Release --no-restore
+            dotnet test tests/tests.csproj --collect:"XPlat Code Coverage" --results-directory "$PWD/TestResults" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[AlibabaCloud.TeaXML]*"
+          '
+    - name: Require 90 percent source coverage
+      run: |
+        awk -F'"' '/<coverage / {
+            for (i = 2; i <= NF; i += 2) {
+              if ($(i - 1) ~ /lines-covered=$/) covered += $i
+              if ($(i - 1) ~ /lines-valid=$/) total += $i
+            }
+          }
+          END {
+            if (total == 0) { print "No production coverage found"; exit 1 }
+            printf "Production line coverage: %.2f%% (%d/%d)\n", 100 * covered / total, covered, total
+            exit (covered * 100 < total * 90)
+          }
+        ' csharp/TestResults/*/coverage.cobertura.xml
     - uses: codecov/codecov-action@v3
       with:
         flags: csharp
+        files: csharp/TestResults/*/coverage.cobertura.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-go:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # test against latest update of each major Java version, as well as specific updates of LTS versions:
-        go: [1.12, 1.13, 1.14, 1.15]
+        go: ["1.12.x", "1.13.x", "1.14.x", "1.15.x", "1.18.x", "stable"]
       fail-fast: false
+    env:
+      GOFLAGS: ${{ (matrix.go == '1.12.x' || matrix.go == '1.13.x') && '-mod=' || '-mod=mod' }}
+      GOPROXY: https://proxy.golang.org
 
     steps:
     - uses: actions/checkout@v3
     - name: Setup Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go }}
+        cache: false
 
     - name: Build
       run: cd golang && go build -v ./...
 
     - name: Test
       run: cd golang && go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+    - name: Require 90 percent statement coverage
+      run: |
+        awk 'NR > 1 { total += $2; if ($3 > 0) covered += $2 }
+          END {
+            if (total == 0) { print "No production coverage found"; exit 1 }
+            printf "Production statement coverage: %.2f%% (%d/%d)\n", 100 * covered / total, covered, total
+            exit (covered * 100 < total * 90)
+          }
+        ' golang/coverage.txt
     - uses: codecov/codecov-action@v3
       with:
         flags: go
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-java:
     runs-on: ubuntu-latest
@@ -65,14 +97,27 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Setup java
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v4
       with:
+        distribution: temurin
         java-version: ${{ matrix.java }}
     - name: Build with Maven
       run: cd java && mvn test
+    - name: Verify Java source coverage
+      run: |
+        test -s java/target/coverage.exec
+        awk -F, 'NR > 1 { total += $8 + $9; covered += $9 }
+          END {
+            if (total == 0) { print "No production coverage found"; exit 1 }
+            printf "Production line coverage: %.2f%% (%d/%d)\n", 100 * covered / total, covered, total
+            exit (covered * 100 < total * 90)
+          }
+        ' java/target/site/jacoco/jacoco.csv
     - uses: codecov/codecov-action@v3
       with:
         flags: java
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-php:
     runs-on: ${{ matrix.operating-system }}
@@ -82,7 +127,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ['5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1']
+        php-versions: ['5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.3']
       fail-fast: false
     name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
 
@@ -97,7 +142,7 @@ jobs:
         extensions: mbstring, intl
         ini-values: post_max_size=256M, max_execution_time=180
         coverage: xdebug
-        tools: php-cs-fixer, phpunit
+        tools: php-cs-fixer, phpunit, composer:${{ (matrix.php-versions == '5.6' || matrix.php-versions == '7.0' || matrix.php-versions == '7.1') && '2.2' || '2' }}
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -105,11 +150,30 @@ jobs:
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress --no-suggest
 
+    - name: Run compatibility tests
+      if: matrix.php-versions != '8.1' && matrix.php-versions != '8.3'
+      run: vendor/bin/phpunit --no-configuration --bootstrap tests/bootstrap.php tests
+
     - name: Run test case
+      if: matrix.php-versions == '8.1' || matrix.php-versions == '8.3'
       run: composer test
+    - name: Require 90 percent source coverage
+      if: matrix.php-versions == '8.1' || matrix.php-versions == '8.3'
+      run: |
+        php -r '
+          $metrics = simplexml_load_file("cache/coverage.clover")->project->metrics;
+          $total = (int) $metrics["statements"];
+          $covered = (int) $metrics["coveredstatements"];
+          if ($total === 0) { fwrite(STDERR, "No production coverage found\n"); exit(1); }
+          printf("Production line coverage: %.2f%% (%d/%d)\n", 100 * $covered / $total, $covered, $total);
+          exit($covered * 100 < $total * 90 ? 1 : 0);
+        '
     - uses: codecov/codecov-action@v3
+      if: matrix.php-versions == '8.1' || matrix.php-versions == '8.3'
       with:
         flags: php
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-python:
     runs-on: ubuntu-latest
@@ -127,16 +191,41 @@ jobs:
     - name: Install dependencies
       run: pip install coverage pytest alibabacloud-tea
     - name: Test with unittest
-      run:  cd python && coverage run --source="./alibabacloud_tea_xml" -m pytest tests/test_*
+      run: |
+        cd python
+        coverage run --source=alibabacloud_tea_xml -m pytest tests/
+        coverage report --fail-under=90
+        coverage xml
     - uses: codecov/codecov-action@v3
       with:
         flags: python
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+
+  build-python2:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run Python 2 tests with coverage
+      run: |
+        docker run --rm -v "${{ github.workspace }}/python2:/work" -w /work python:2.7.18-slim sh -ec '
+          pip install coverage==5.5 alibabacloud-tea-py2
+          coverage run --branch --source=alibabacloud_tea_xml -m unittest discover -s tests -v
+          coverage report --fail-under=90
+          coverage xml
+        '
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: python2
+        files: python2/coverage.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
   build-typescript:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [12.x, 14.x, 16.x, 22.x]
       fail-fast: false
 
     steps:
@@ -148,10 +237,38 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Build
-      run: cd ts && npm install
+      run: |
+        cd ts
+        npm install --package-lock=false
+        npm install --no-save --package-lock=false @types/node@14.18.63
+        npm run build
 
     - name: Test
-      run: cd ts && npm test
+      run: cd ts && ./node_modules/.bin/nyc -e .ts -r=text -r=lcov --all --include="src/**/*.ts" --check-coverage --lines=90 npm test
     - uses: codecov/codecov-action@v3
       with:
         flags: typescript
+        files: ts/coverage/lcov.info
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+
+  build-cpp:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install native test dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake gcovr pkg-config libssl-dev \
+          libcurl4-openssl-dev uuid-dev libcpprest-dev libgtest-dev \
+          libboost-dev libboost-random-dev libboost-system-dev libboost-thread-dev \
+          libboost-filesystem-dev libboost-chrono-dev libboost-atomic-dev \
+          libboost-date-time-dev libboost-regex-dev
+    - name: Run tests with coverage
+      run: bash cpp/scripts/codecov.sh
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: cpp
+        files: cpp/cmake_build/coverage.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}

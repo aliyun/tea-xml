@@ -74,3 +74,50 @@ jobs:
       run: swift --version
     - name: Test
       run: swift test
+
+  coverage:
+    name: Swift source coverage
+    runs-on: macos-15
+    steps:
+    - uses: actions/checkout@v4
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+    - name: Run tests with coverage
+      run: swift test --enable-code-coverage
+    - name: Export source coverage
+      run: |
+        xcrun llvm-cov export \
+          .build/debug/DarabonbaXMLPackageTests.xctest/Contents/MacOS/DarabonbaXMLPackageTests \
+          -instr-profile=.build/debug/codecov/default.profdata \
+          -format=lcov Sources/DarabonbaXML/*.swift > .build/coverage.lcov
+    - name: Require 90 percent source coverage
+      run: |
+        awk -F: '
+          /^LF:/ { total += $2 }
+          /^LH:/ { covered += $2 }
+          END {
+            if (total == 0) { print "No production coverage found"; exit 1 }
+            printf "Production line coverage: %.2f%% (%d/%d)\n", 100 * covered / total, covered, total
+            exit (covered * 100 < total * 90)
+          }
+        ' .build/coverage.lcov
+    - uses: codecov/codecov-action@v3
+      with:
+        flags: swift
+        files: swift/.build/coverage.lcov
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+
+  build-swift-5-6:
+    name: Swift 5.6 on Linux
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build and test with Swift 5.6
+      run: |
+        docker run --rm -v "${{ github.workspace }}/swift:/work" -w /work \
+          swift:5.6.3-focal bash -ec '
+            swift --version
+            swift build -v
+            swift test -v
+          '

@@ -359,5 +359,39 @@ describe('client', function () {
       }
     });
   });
+
+  it('casts false strings, zero, and missing primitive values', function () {
+    class Values {
+      static names() {
+        return { enabled: 'Enabled', count: 'Count', title: 'Title' };
+      }
+
+      static types() {
+        return { enabled: 'boolean', count: 'number', title: 'string' };
+      }
+    }
+
+    assert.deepStrictEqual(client._xmlCast({ Enabled: 'false', Count: 0, Title: 12 }, Values), {
+      Enabled: false, Count: 0, Title: '12',
+    });
+    assert.deepStrictEqual(client._xmlCast(null, Values), {
+      Enabled: false, Count: NaN, Title: '',
+    });
+  });
+
+  it('parses repeated children without a response model and rejects malformed XML', function () {
+    assert.deepStrictEqual(client.parseXml('<root><item>one</item><item>two</item></root>', undefined), {
+      root: { item: ['one', 'two'] },
+    });
+    assert.throws(() => client.parseXml('<root>', null));
+    assert.strictEqual(client.parseXml('', null), null);
+  });
+
+  it('escapes XML text and preserves it through a round trip', function () {
+    const data = { root: { value: '<&>', empty: '' } };
+    const xml = client.toXML(data);
+    assert.ok(xml.indexOf('&lt;&amp;&gt;') >= 0);
+    assert.deepStrictEqual(client.parseXml(xml, null), data);
+  });
 });
 

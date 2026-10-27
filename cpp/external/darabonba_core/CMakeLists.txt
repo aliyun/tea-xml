@@ -18,10 +18,13 @@ else()
     FetchContent_Populate(_darabonba_core)
     message(STATUS "Added darabonba_core source : ${_darabonba_core_SOURCE_DIR}")
     message(STATUS "Added darabonba_core binary : ${_darabonba_core_BINARY_DIR}")
+    set(darabonba_xml_unit_tests ${ENABLE_UNIT_TESTS})
+    set(ENABLE_UNIT_TESTS OFF)
     add_subdirectory(
       ${_darabonba_core_SOURCE_DIR}
       ${_darabonba_core_BINARY_DIR}
     )
+    set(ENABLE_UNIT_TESTS ${darabonba_xml_unit_tests})
   endif()
   target_include_directories(darabonba_xml PRIVATE "${_darabonba_core_SOURCE_DIR}/include")
   if(ENABLE_UNIT_TESTS)
