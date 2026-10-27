@@ -3,7 +3,6 @@ import Foundation
 // 使用自定义的XML实现，避免平台兼容性问题
 // 不再依赖Foundation或FoundationXML的XML类
 import SWXMLHash
-import Tea
 
 public class Client {
     public static func parseXml(_ body: String?, _ response: AnyObject?) -> [String: Any] {
